@@ -1,0 +1,13 @@
+{/* i am a valid slash comment 123 12.34 .5 1.2 0. for loop if then else var int real $ < > <= >= = := ==
+with
+multiple
+lines*
+
+
+
+
+
+/
+
+
+*/

@@ -1,0 +1,11 @@
+{teste} {asdasdasxc} /*dasdasd*/
+/* dasdsadasd
+ fdsfsdfas
+
+ fdsfsdfas
+ {sadasdsa}
+ */
+
+ { dsafsadfsdafsa /* dsadasd das d */ }
+
+ /**/ /* dasdasd */ {sdfasdf}
