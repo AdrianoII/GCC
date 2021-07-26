@@ -36,6 +36,8 @@ token_t *token_init();
 
 void token_reset(token_t *token);
 
+void token_destroy(token_t *token);
+
 void token_log(token_t *token);
 
 void token_pretty_log(token_t *token);
