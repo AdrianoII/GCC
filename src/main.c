@@ -40,6 +40,6 @@ int main(int argc, char *argv[])
     }
 
     token_destroy(token);
-    arg
+
     return 0;
 }
