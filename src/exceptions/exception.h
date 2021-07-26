@@ -1,0 +1,20 @@
+//
+// Created by adrianoii on 23/07/2021.
+//
+
+#ifndef GCC_EXCEPTION_H
+#define GCC_EXCEPTION_H
+
+typedef enum
+{
+    ALLOCATION_FAILED = 1,
+    INVALID_CLI,
+    INVALID_FILE,
+    INVALID_FILE_ROLLBACK_CHAR,
+    LEX_INVALID_BRACKET_COMMENT,
+    LEX_INVALID_SLASH_COMMENT,
+    LEX_INVALID_FLOAT,
+    LEX_INVALID_SYMBOL,
+} exception_t;
+
+#endif //GCC_EXCEPTION_H
