@@ -3,6 +3,13 @@
 
 Feito em C11, e utilizand o CMAKE para buildar
 
-# Para buildar: rode na raiz do projeto
-- cmake --build ./GCC/cmake-build-debug --target GCC -- -j 3
-
+# Para buildar e executar, rode na raiz do projeto:
+- ```bash
+  cmake .
+  ```
+- ```bash
+  cmake --build ./
+  ```
+- ```bash
+  ./GCC
+  ```
