@@ -4,8 +4,18 @@
 
 #include "lexical_analyzer.h"
 #include <stdbool.h>
-#include "../exceptions/logs.h"
+#include "../logs/logs.h"
 #include "../exceptions/exceptions_handler.h"
+
+bool is_separator(int c);
+bool is_alpha(int c);
+bool is_num(int c);
+bool is_alphanum(int c);
+bool is_keyword(token_t *token);
+bool is_symbol(int c);
+
+void append_char_to_token(token_t *token, file_t *file, int c);
+
 
 bool is_separator(int c)
 {

@@ -5,6 +5,8 @@
 #include "lexical/lexical_token.h"
 #include "lexical/lexical_analyzer.h"
 
+void playground();
+
 void playground()
 {
     printf("Entered at the playground!\n");

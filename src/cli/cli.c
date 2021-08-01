@@ -7,14 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../exceptions/exceptions_handler.h"
-#include "../exceptions/logs.h"
+#include "../logs/logs.h"
 
-bool str_equals(const char *s1, const char *s2)
-{
-    return strcmp(s1, s2) == 0;
-}
+bool str_equals(const char *s1, const char *s2);
 
-cli_args_t *parse_args(int argc, char *argv[])
+cli_args_t *parse_args(size_t argc, char *argv[])
 {
     cli_args_t *new_cli = calloc(1, sizeof(cli_args_t));
 
@@ -90,4 +87,9 @@ void cli_args_log(cli_args_t *args)
 void cli_destroy(cli_args_t *args)
 {
     free(args);
+}
+
+bool str_equals(const char *s1, const char *s2)
+{
+    return strcmp(s1, s2) == 0;
 }
