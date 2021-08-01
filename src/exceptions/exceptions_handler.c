@@ -4,7 +4,7 @@
 
 #include "exceptions_handler.h"
 #include <stdlib.h>
-#include "logs.h"
+#include "../logs/logs.h"
 
 void throw_exception(exception_t exception)
 {
