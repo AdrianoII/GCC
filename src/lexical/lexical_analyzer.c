@@ -233,13 +233,6 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                     token->end_position = source_file->col;
                     hasLexicalError = false;
                 }
-                    // ==
-                else if ((source_file->actual_char == '=') && (string_equals_literal(token->value, "=")))
-                {
-                    isTokenClassified = true;
-                    token->end_position = source_file->col;
-                    hasLexicalError = false;
-                }
                     // :=
                 else if ((source_file->actual_char == '=') && (string_equals_literal(token->value, ":")))
                 {
