@@ -20,6 +20,8 @@ typedef struct
 
 file_t *file_init(const char *file_path);
 
+void file_destroy(file_t *file);
+
 int file_get_next_char(file_t *file);
 
 void file_rollback_byte(file_t *file);

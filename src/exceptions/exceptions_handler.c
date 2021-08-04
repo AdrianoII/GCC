@@ -29,6 +29,8 @@ void throw_exception(exception_t exception)
             exit(LEX_INVALID_FLOAT);
         case LEX_INVALID_SYMBOL:
             exit(LEX_INVALID_SYMBOL);
+        case ASSERT_FAIL:
+            exit(ASSERT_FAIL);
         default:
             exit(-1);
     }

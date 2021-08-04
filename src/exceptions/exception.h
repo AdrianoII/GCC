@@ -15,6 +15,7 @@ typedef enum
     LEX_INVALID_SLASH_COMMENT,
     LEX_INVALID_FLOAT,
     LEX_INVALID_SYMBOL,
+    ASSERT_FAIL,
 } exception_t;
 
 #endif //GCC_EXCEPTION_H

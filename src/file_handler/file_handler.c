@@ -28,6 +28,12 @@ file_t *file_init(const char *file_path)
     return new_file;
 }
 
+void file_destroy(file_t *file)
+{
+    fclose(file->p_file);
+    free(file);
+}
+
 int file_get_next_char(file_t *file)
 {
     file->actual_char = fgetc(file->p_file);
