@@ -1,3 +1,4 @@
+#include "main.h"
 #include <stdio.h>
 #include "file_handler/file_handler.h"
 #include "cli/cli.h"
