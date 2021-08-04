@@ -1,4 +1,6 @@
 out/*
 !out/.keep
+tests/outputs/*
+!tests/outputs/.keep
 DFAS/*
 .idea/*

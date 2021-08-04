@@ -46,12 +46,15 @@ debug: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_handl
         out/lexical_analyzer.o
 	gcc $(CFLAGS) -g src/main.c out/*.o -o out/GCC-debug
 
+.PHONY : tests
+tests : memcheck
+	gcc ${CFLAGS} tests/lexical_tests.c out/logs.o out/exceptions_handler.o -o out/lexical_tests
+	@./out/lexical_tests
+
 .PHONY : memcheck
 memcheck: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_handler.o out/lexical_token.o \
         out/lexical_analyzer.o
 	gcc ${ASANFLAGS} $(CFLAGS) -g src/main.c out/*.o -o out/GCC-memcheck
-	./out/GCC-memcheck
-	@echo "Memory check passed"
 
 .PHONY : clean
 clean:

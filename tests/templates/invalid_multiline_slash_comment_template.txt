@@ -1,0 +1,2 @@
+[0;31mLEXICAL_ERROR: [0m[0;32mInvalid slash comment at line [0m1[0;32m.
+[0m

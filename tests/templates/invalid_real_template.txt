@@ -1,0 +1,4 @@
+< REAL : 1.8 >
+< REAL : 1.22222 >
+[0;31mLEXICAL_ERROR: [0m[0;32mInvalid real at line [0m2[0;32m.
+[0m< REAL : 1.4 >

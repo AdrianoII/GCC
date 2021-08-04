@@ -1,0 +1,14 @@
+< KEYWORD : if >
+< KEYWORD : then >
+< KEYWORD : while >
+< KEYWORD : do >
+< KEYWORD : write >
+< KEYWORD : read >
+< KEYWORD : else >
+< KEYWORD : begin >
+< KEYWORD : end >
+< KEYWORD : program >
+< KEYWORD : real >
+< KEYWORD : integer >
+< KEYWORD : procedure >
+< KEYWORD : var >
