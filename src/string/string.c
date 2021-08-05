@@ -9,7 +9,7 @@
 #include "../exceptions/exception.h"
 #include "../exceptions/exceptions_handler.h"
 
-string_t *string_init()
+string_t *string_init(void)
 {
     string_t *new_string = calloc(1, sizeof(string_t));
 

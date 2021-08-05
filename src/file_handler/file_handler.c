@@ -72,7 +72,7 @@ void file_rollback_byte(file_t *file)
     fseek(file->p_file, -1, SEEK_CUR); // "abc\n"
     if (file->actual_char == '\n')
     {
-        long int old_col = 0;
+        size_t old_col = 0;
         fseek(file->p_file, -1, SEEK_CUR);
 
         while ((file->actual_char = fgetc(file->p_file)) != '\n')

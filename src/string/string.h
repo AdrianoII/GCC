@@ -17,7 +17,7 @@ typedef struct string
     size_t max_size;
 } string_t;
 
-string_t *string_init();
+string_t *string_init(void);
 
 void string_reset(string_t *string);
 

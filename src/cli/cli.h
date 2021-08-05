@@ -16,7 +16,7 @@ typedef struct
     bool stop_on_error;
 } cli_args_t;
 
-cli_args_t *parse_args(size_t argc, char *argv[]);
+cli_args_t *parse_args(int argc, char *argv[]);
 
 void cli_args_log(cli_args_t *args);
 

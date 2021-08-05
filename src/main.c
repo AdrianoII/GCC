@@ -6,7 +6,7 @@
 #include "lexical/lexical_analyzer.h"
 
 
-void playground()
+void playground(void)
 {
     printf("Entered at the playground!\n");
    // Test things here

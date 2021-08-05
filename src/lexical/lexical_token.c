@@ -26,7 +26,7 @@ const char *lexical_token_class_to_string(lexical_token_class_t class)
     return token_class_mapper[class];
 }
 
-token_t *token_init()
+token_t *token_init(void)
 {
     token_t *new_token = calloc(1, sizeof(token_t));
 

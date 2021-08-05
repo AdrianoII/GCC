@@ -34,7 +34,7 @@ typedef struct Token
     string_t *value; // Optional
 } token_t;
 
-token_t *token_init();
+token_t *token_init(void);
 
 bool is_token_valid(token_t *token);
 

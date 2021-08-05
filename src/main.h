@@ -8,7 +8,7 @@
 #include "file_handler/file_handler.h"
 #include "cli/cli.h"
 
-void playground();
+void playground(void);
 void parse_source_file(file_t *source_file, cli_args_t *args);
 
 #endif //GCC_MAIN_H

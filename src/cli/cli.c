@@ -11,7 +11,7 @@
 
 bool str_equals(const char *s1, const char *s2);
 
-cli_args_t *parse_args(size_t argc, char *argv[])
+cli_args_t *parse_args(int argc, char *argv[])
 {
     cli_args_t *new_cli = calloc(1, sizeof(cli_args_t));
 
@@ -37,7 +37,7 @@ cli_args_t *parse_args(size_t argc, char *argv[])
         new_cli->source_file_path = argv[1];
     }
 
-    for (size_t i = new_cli->source_file_path == NULL ? 1 : 2; i < argc; i++)
+    for (int i = new_cli->source_file_path == NULL ? 1 : 2; i < argc; i++)
     {
         if (str_equals(argv[i], "-h") || str_equals(argv[i], "--help"))
         {
