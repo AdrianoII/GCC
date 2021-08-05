@@ -1,7 +1,6 @@
-# Made to work with GCC
-# TODO: Arrumar a flag -g
+# Made to work with clang
 
-# GCC flags
+# clang flags
 CFLAGS  = -std=c11
 CFLAGS += -Wall
 CFLAGS += -Werror
@@ -9,76 +8,52 @@ CFLAGS += -Wextra
 CFLAGS += -pedantic
 CFLAGS += -Werror
 CFLAGS += -Wmissing-declarations
-
-# ASan flgas
-ASANFLAGS  = -fsanitize=address
-ASANFLAGS += -fno-common
-ASANFLAGS += -fno-omit-frame-pointer
+#CFLAGS += -Weverything
+ASANFLAGS  =
 
 all: out/GCC
 
+# ASan flags
+debug: clean
+debug: ASANFLAGS += -fsanitize=address
+debug: ASANFLAGS += -fno-common
+debug: ASANFLAGS += -fno-omit-frame-pointer
+debug: ASANFLAGS += -fsanitize-address-use-after-scope
+debug: export ASAN_OPTIONS=strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1
+
+debug: CFLAGS += -g
+debug: out/GCC
+
 out/GCC: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_handler.o out/lexical_token.o \
  out/lexical_analyzer.o
-	gcc $(CFLAGS) src/main.c out/*.o -o out/GCC
+	clang $(CFLAGS) $(ASANFLAGS) src/main.c out/*.o -o out/GCC
 
 out/lexical_analyzer.o: out/logs.o out/exceptions_handler.o out/file_handler.o
-	gcc $(CFLAGS) -c src/lexical/lexical_analyzer.c -o out/lexical_analyzer.o
+	clang $(CFLAGS) -c src/lexical/lexical_analyzer.c -o out/lexical_analyzer.o
 
 out/lexical_token.o: out/exceptions_handler.o out/string.o out/file_handler.o
-	gcc $(CFLAGS) -c src/lexical/lexical_token.c -o out/lexical_token.o
+	clang $(CFLAGS) -c src/lexical/lexical_token.c -o out/lexical_token.o
 
 out/file_handler.o: out/exceptions_handler.o out/logs.o
-	gcc $(CFLAGS) -c src/file_handler/file_handler.c -o out/file_handler.o
+	clang $(CFLAGS) -c src/file_handler/file_handler.c -o out/file_handler.o
 
 out/cli.o: out/exceptions_handler.o out/logs.o
-	gcc $(CFLAGS) -c src/cli/cli.c -o out/cli.o
+	clang $(CFLAGS) -c src/cli/cli.c -o out/cli.o
 
 out/string.o: out/exceptions_handler.o
-	gcc $(CFLAGS) -c src/string/string.c -o out/string.o
+	clang $(CFLAGS) -c src/string/string.c -o out/string.o
 
 out/exceptions_handler.o: out/logs.o
-	gcc $(CFLAGS) -c src/exceptions/exceptions_handler.c -o out/exceptions_handler.o
+	clang $(CFLAGS) -c src/exceptions/exceptions_handler.c -o out/exceptions_handler.o
 
 out/logs.o:
-	gcc $(CFLAGS) -c src/logs/logs.c -o out/logs.o
-
-# Debug objects
-.PHONY : debug
-debug: out/logs-debug.o out/exceptions_handler-debug.o out/string-debug.o out/cli-debug.o out/file_handler-debug.o \
-		out/lexical_token-debug.o out/lexical_analyzer-debug.o
-	gcc $(CFLAGS) -g src/main.c out/*.o -o out/GCC-debug
-
-out/lexical_analyzer-debug.o: out/logs-debug.o out/exceptions_handler-debug.o out/file_handler-debug.o
-	gcc $(CFLAGS) -g -c src/lexical/lexical_analyzer.c -o out/lexical_analyzer-debug.o
-
-out/lexical_token-debug.o: out/exceptions_handler-debug.o out/string-debug.o out/file_handler-debug.o
-	gcc $(CFLAGS) -g -c src/lexical/lexical_token.c -o out/lexical_token-debug.o
-
-out/file_handler-debug.o: out/exceptions_handler-debug.o out/logs-debug.o
-	gcc $(CFLAGS) -g -c src/file_handler/file_handler.c -o out/file_handler-debug.o
-
-out/cli-debug.o: out/exceptions_handler-debug.o out/logs-debug.o
-	gcc $(CFLAGS) -g -c src/cli/cli.c -o out/cli-debug.o
-
-out/string-debug.o: out/exceptions_handler-debug.o
-	gcc $(CFLAGS) -g -c src/string/string.c -o out/string-debug.o
-
-out/exceptions_handler-debug.o: out/logs-debug.o
-	gcc $(CFLAGS) -g -c src/exceptions/exceptions_handler.c -o out/exceptions_handler-debug.o
-
-out/logs-debug.o:
-	gcc $(CFLAGS) -g -c src/logs/logs.c -o out/logs-debug.o
+	clang $(CFLAGS) -c src/logs/logs.c -o out/logs.o
 
 .PHONY : tests
-tests : memcheck
-	gcc ${CFLAGS} tests/lexical_tests.c out/logs.o out/exceptions_handler.o -o out/lexical_tests
+tests : debug
+	clang ${CFLAGS} tests/lexical_tests.c out/logs.o out/exceptions_handler.o -o out/lexical_tests
 	@./out/lexical_tests
-
-.PHONY : memcheck
-memcheck: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_handler.o out/lexical_token.o \
-        out/lexical_analyzer.o
-	gcc ${ASANFLAGS} $(CFLAGS) -g src/main.c out/*.o -o out/GCC-memcheck
 
 .PHONY : clean
 clean:
-	rm out/GCC out/*.o
+	-rm out/GCC* out/*.o
