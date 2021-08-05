@@ -11,6 +11,7 @@ const char *lexical_token_class_to_string(lexical_token_class_t class)
 {
     //TODO: Maybe set the vector as a global
     const char *token_class_mapper[] = {
+            "EMPTY_TOKEN_CLASS",
             "INVALID_TOKEN_CLASS",
             "BRACKET_COMMENT",
             "SLASH_COMMENT",
@@ -46,8 +47,13 @@ void token_reset(token_t *token)
     token->start_position = 0;
     token->end_position = 0;
     token->line = 0;
-    token->token_class = INVALID_TOKEN_CLASS;
+    token->token_class = EMPTY_TOKEN_CLASS;
     string_reset(token->value);
+}
+
+bool is_token_valid(token_t *token)
+{
+    return token->token_class != EMPTY_TOKEN_CLASS && token->token_class != INVALID_TOKEN_CLASS;
 }
 
 void token_destroy(token_t *token)

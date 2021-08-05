@@ -24,16 +24,18 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         if (source_file->actual_char != EOF)
         {
             file_get_next_char(source_file);
-        } else
+        }
+        else
         {
             eof_found = true;
         }
 
         //Skip separators
-        if (token->token_class == INVALID_TOKEN_CLASS && is_separator(source_file->actual_char))
+        if (token->token_class == EMPTY_TOKEN_CLASS && is_separator(source_file->actual_char))
         {
             appendChar = false;
-        } else if (token->token_class != INVALID_TOKEN_CLASS)
+        }
+        else if (is_token_valid(token))
         {
             // Search for the end of a bracket comment
             if (token->token_class == BRACKET_COMMENT)
@@ -64,7 +66,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                         token->end_position = source_file->col;
                         isTokenClassified = true;
                         hasLexicalError = false;
-                    } else
+                    }
+                    else
                     {
                         appendChar = false;
                         // Deal with sequence of '*'
@@ -84,7 +87,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                 {
                     appendChar = false;
                 }
-            } else if (token->token_class == IDENTIFIER)
+            }
+            else if (token->token_class == IDENTIFIER)
             {
                 if (!is_alphanum(source_file->actual_char))
                 {
@@ -99,12 +103,14 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                     hasLexicalError = false;
                     rollback_actual_char = true;
                 }
-            } else if (token->token_class == INTEGER)
+            }
+            else if (token->token_class == INTEGER)
             {
                 if (source_file->actual_char == '.')
                 {
                     token->token_class = REAL;
-                } else if (!is_num(source_file->actual_char))
+                }
+                else if (!is_num(source_file->actual_char))
                 {
                     token->end_position = source_file->col;
                     isTokenClassified = true;
@@ -112,7 +118,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                     hasLexicalError = false;
                     rollback_actual_char = true;
                 }
-            } else if (token->token_class == REAL)
+            }
+            else if (token->token_class == REAL)
             {
                 if (!is_num(source_file->actual_char))
                 {
@@ -125,7 +132,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                         rollback_actual_char = true;
                     }
                 }
-            } else if (token->token_class == SYMBOL)
+            }
+            else if (token->token_class == SYMBOL)
             {
                 // <>
                 if ((source_file->actual_char == '>') && (string_equals_literal(token->value, "<")))
@@ -159,7 +167,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                 else if ((source_file->actual_char == '*') && (string_equals_literal(token->value, "/")))
                 {
                     token->token_class = SLASH_COMMENT;
-                } else
+                }
+                else
                 {
                     token->end_position = source_file->col;
                     isTokenClassified = true;
@@ -168,7 +177,8 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
                     rollback_actual_char = true;
                 }
             }
-        } else
+        }
+        else
         {
             // Start of a bracket comment
             if (source_file->actual_char == '{')
@@ -215,46 +225,55 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 
 void treat_lexical_error(token_t *token, bool stop_on_error)
 {
-    if (token->token_class == BRACKET_COMMENT)
+    switch (token->token_class)
     {
-        log_with_color(RED, "LEXICAL_ERROR: ");
-        log_with_color(GRN, "Invalid bracket comment at line ");
-        printf("%zu", token->line + 1);
-        log_with_color(GRN, ".\n");
-        if (stop_on_error)
-        {
-            throw_exception(LEX_INVALID_BRACKET_COMMENT);
-        }
-    } else if (token->token_class == SLASH_COMMENT)
-    {
-        log_with_color(RED, "LEXICAL_ERROR: ");
-        log_with_color(GRN, "Invalid slash comment at line ");
-        printf("%zu", token->line + 1);
-        log_with_color(GRN, ".\n");
-        if (stop_on_error)
-        {
-            throw_exception(LEX_INVALID_SLASH_COMMENT);
-        }
-    } else if (token->token_class == REAL)
-    {
-        log_with_color(RED, "LEXICAL_ERROR: ");
-        log_with_color(GRN, "Invalid real at line ");
-        printf("%zu", token->line + 1);
-        log_with_color(GRN, ".\n");
-        if (stop_on_error)
-        {
-            throw_exception(LEX_INVALID_FLOAT);
-        }
-    } else if (token->token_class == SYMBOL)
-    {
-        log_with_color(RED, "LEXICAL_ERROR: ");
-        log_with_color(GRN, "Invalid symbol at line ");
-        printf("%zu", token->line + 1);
-        log_with_color(GRN, ".\n");
-        if (stop_on_error)
-        {
-            throw_exception(LEX_INVALID_SYMBOL);
-        }
+        case BRACKET_COMMENT:
+            log_with_color(RED, "LEXICAL_ERROR: ");
+            log_with_color(GRN, "Invalid bracket comment at line ");
+            printf("%zu", token->line + 1);
+            log_with_color(GRN, ".\n");
+            if (stop_on_error)
+            {
+                throw_exception(LEX_INVALID_BRACKET_COMMENT);
+            }
+            break;
+        case SLASH_COMMENT:
+            log_with_color(RED, "LEXICAL_ERROR: ");
+            log_with_color(GRN, "Invalid slash comment at line ");
+            printf("%zu", token->line + 1);
+            log_with_color(GRN, ".\n");
+            if (stop_on_error)
+            {
+                throw_exception(LEX_INVALID_SLASH_COMMENT);
+            }
+            break;
+        case REAL:
+            log_with_color(RED, "LEXICAL_ERROR: ");
+            log_with_color(GRN, "Invalid real at line ");
+            printf("%zu", token->line + 1);
+            log_with_color(GRN, ".\n");
+            if (stop_on_error)
+            {
+                throw_exception(LEX_INVALID_FLOAT);
+            }
+            break;
+        case SYMBOL:
+            log_with_color(RED, "LEXICAL_ERROR: ");
+            log_with_color(GRN, "Invalid symbol at line ");
+            printf("%zu", token->line + 1);
+            log_with_color(GRN, ".\n");
+            if (stop_on_error)
+            {
+                throw_exception(LEX_INVALID_SYMBOL);
+            }
+            break;
+        default:
+            if (is_token_valid(token))
+            {
+                log_with_color(RED, "INVALID LEXICAL ERROR: ");
+                printf("Invalid state with Token class = %s.\n", lexical_token_class_to_string(token->token_class));
+                throw_exception(INVALID_LEXICAL_ERROR_STATE);
+            }
     }
     token->token_class = INVALID_TOKEN_CLASS;
 }

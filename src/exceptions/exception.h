@@ -17,6 +17,7 @@ typedef enum
     LEX_INVALID_SYMBOL,
     ASSERT_FAIL,
     INVALID_CHAR_FROM_FILE,
+    INVALID_LEXICAL_ERROR_STATE,
 } exception_t;
 
 #endif //GCC_EXCEPTION_H

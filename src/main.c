@@ -22,7 +22,7 @@ void parse_source_file(file_t *source_file, cli_args_t *args)
         if (args->logs)
         {
             token_log(token);
-        } else if (token->token_class != INVALID_TOKEN_CLASS)
+        } else if (is_token_valid(token))
         {
             token_pretty_log(token);
         }

@@ -11,6 +11,7 @@
 
 typedef enum
 {
+    EMPTY_TOKEN_CLASS,
     INVALID_TOKEN_CLASS,
     BRACKET_COMMENT, // {}
     SLASH_COMMENT, // /**/
@@ -34,6 +35,8 @@ typedef struct Token
 } token_t;
 
 token_t *token_init();
+
+bool is_token_valid(token_t *token);
 
 void token_reset(token_t *token);
 
