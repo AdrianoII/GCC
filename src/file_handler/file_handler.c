@@ -4,6 +4,7 @@
 #include "file_handler.h"
 #include <stdlib.h>
 #include "../exceptions/exceptions_handler.h"
+#include "../logs/logs.h"
 
 file_t *file_init(const char *file_path)
 {
@@ -38,6 +39,13 @@ int file_get_next_char(file_t *file)
 {
     file->actual_char = fgetc(file->p_file);
 
+    if (!is_valid_char_value(file->actual_char))
+    {
+        log_with_color_nl(RED, "INVALID CHARACTER VALUE!");
+        printf("FILE: %s\nCHARACTER VALUE: %d\n", file->path, file->actual_char);
+        throw_exception(INVALID_CHAR_FROM_FILE);
+    }
+
     if (file->actual_char == '\n')
     {
         ++file->line;
@@ -70,7 +78,7 @@ void file_rollback_byte(file_t *file)
         while ((file->actual_char = fgetc(file->p_file)) != '\n')
         {
             ++old_col;
-            // try to rollback the cursor 2 bytes
+            // try to roll back the cursor 2 bytes
             for (size_t i = 0; (ftell(file->p_file) != 0) && i < 2; i++)
             {
                 fseek(file->p_file, -1, SEEK_CUR);

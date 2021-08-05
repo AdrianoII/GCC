@@ -31,6 +31,8 @@ void throw_exception(exception_t exception)
             exit(LEX_INVALID_SYMBOL);
         case ASSERT_FAIL:
             exit(ASSERT_FAIL);
+        case INVALID_CHAR_FROM_FILE:
+            exit(INVALID_CHAR_FROM_FILE);
         default:
             exit(-1);
     }
