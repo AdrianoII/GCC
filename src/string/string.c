@@ -184,3 +184,11 @@ bool is_valid_char_value(int c)
     // Check if c is EOF or an ascii char.
     return c >= -1 && c <= 127;
 }
+
+bool make_double_symbol(int c, string_t *string)
+{
+    return ((c == '>') && (string_equals_literal(string, "<"))) //<>
+           || ((c == '=') && (string_equals_literal(string, ">"))) // >=
+           || ((c == '=') && (string_equals_literal(string, "<"))) // <=
+           || ((c == '=') && (string_equals_literal(string, ":"))); // :=
+}

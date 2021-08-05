@@ -35,6 +35,8 @@ void throw_exception(exception_t exception)
             exit(INVALID_CHAR_FROM_FILE);
         case INVALID_LEXICAL_ERROR_STATE:
             exit(INVALID_LEXICAL_ERROR_STATE);
+        case INVALID_LEXICAL_PARSER_STATE:
+            exit(INVALID_LEXICAL_PARSER_STATE);
         default:
             exit(-1);
     }

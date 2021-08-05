@@ -37,6 +37,7 @@ void string_append_char(string_t *string, char c);
 
 void string_pop_char(string_t *string);
 
+// TODO: Find a better place to fit this
 // Char utils
 bool is_separator(int c);
 bool is_alpha(int c);
@@ -48,4 +49,6 @@ bool is_valid_char_value(int c);
 // String utils
 bool is_keyword(string_t *string);
 
+//Mix utils
+bool make_double_symbol(int c, string_t *string);
 #endif //GCC_STRING_H

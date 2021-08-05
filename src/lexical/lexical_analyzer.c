@@ -7,19 +7,31 @@
 #include "../logs/logs.h"
 #include "../exceptions/exceptions_handler.h"
 
-void treat_lexical_error(token_t *token, bool stop_on_error);
+typedef struct {
+    bool appendChar;
+    bool isTokenClassified;
+    bool hasLexicalError;
+    bool rollback_actual_char;
+    bool eof_found;
+} lexical_parser_states_t;
+
+void lexical_parser_states_init(lexical_parser_states_t *states);
+
+void try_start_token_parse(int actual_char, token_t *token);
+
+void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t *source_file);
+
+void handle_lexical_error(token_t *token, bool stop_on_error);
 
 bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 {
-    bool appendChar = true;
-    bool isTokenClassified = false;
-    bool hasLexicalError = true;
-    bool rollback_actual_char = false;
-    bool eof_found = false;
 
-    while (!isTokenClassified && !eof_found)
+    lexical_parser_states_t states;
+    lexical_parser_states_init(&states);
+
+    while (!states.isTokenClassified && !states.eof_found)
     {
-        appendChar = true;
+        states.appendChar = true;
 
         if (source_file->actual_char != EOF)
         {
@@ -27,203 +39,202 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         }
         else
         {
-            eof_found = true;
+            states.eof_found = true;
         }
 
         //Skip separators
         if (token->token_class == EMPTY_TOKEN_CLASS && is_separator(source_file->actual_char))
         {
-            appendChar = false;
+            states.appendChar = false;
         }
         else if (is_token_valid(token))
         {
-            // Search for the end of a bracket comment
-            if (token->token_class == BRACKET_COMMENT)
-            {
-                // FIXME: Dealt with log multiline comment's col
-                // End of a bracket comment
-                if (source_file->actual_char == '}')
-                {
-                    token->end_position = source_file->col;
-                    isTokenClassified = true;
-                    hasLexicalError = false;
-                }
-                    // Skip this char
-                else
-                {
-                    appendChar = false;
-                }
-            }
-                // Search for the end of a slash comment
-            else if (token->token_class == SLASH_COMMENT)
-            {
-                // FIXME: Dealt with log multiline comment's col
-                // possible end o a slash comment
-                if (string_equals_literal(token->value, "/**"))
-                {
-                    if (source_file->actual_char == '/')
-                    {
-                        token->end_position = source_file->col;
-                        isTokenClassified = true;
-                        hasLexicalError = false;
-                    }
-                    else
-                    {
-                        appendChar = false;
-                        // Deal with sequence of '*'
-                        if (source_file->actual_char != '*')
-                        {
-                            string_pop_char(token->value);
-                        }
-                    }
-                }
-                    // Try to find the end of a slash comment
-                else if (source_file->actual_char == '*')
-                {
-                    // For now just append to the value
-                }
-                    // Skip this char
-                else
-                {
-                    appendChar = false;
-                }
-            }
-            else if (token->token_class == IDENTIFIER)
-            {
-                if (!is_alphanum(source_file->actual_char))
-                {
-                    if (is_keyword(token->value))
-                    {
-                        token->token_class = KEYWORD;
-                    }
-
-                    token->end_position = source_file->col;
-                    isTokenClassified = true;
-                    appendChar = false;
-                    hasLexicalError = false;
-                    rollback_actual_char = true;
-                }
-            }
-            else if (token->token_class == INTEGER)
-            {
-                if (source_file->actual_char == '.')
-                {
-                    token->token_class = REAL;
-                }
-                else if (!is_num(source_file->actual_char))
-                {
-                    token->end_position = source_file->col;
-                    isTokenClassified = true;
-                    appendChar = false;
-                    hasLexicalError = false;
-                    rollback_actual_char = true;
-                }
-            }
-            else if (token->token_class == REAL)
-            {
-                if (!is_num(source_file->actual_char))
-                {
-                    isTokenClassified = true;
-                    if (token->value->length > 2)
-                    {
-                        token->end_position = source_file->col;
-                        appendChar = false;
-                        hasLexicalError = false;
-                        rollback_actual_char = true;
-                    }
-                }
-            }
-            else if (token->token_class == SYMBOL)
-            {
-                // <>
-                if ((source_file->actual_char == '>') && (string_equals_literal(token->value, "<")))
-                {
-                    isTokenClassified = true;
-                    token->end_position = source_file->col;
-                    hasLexicalError = false;
-                }
-                    // >=
-                else if ((source_file->actual_char == '=') && (string_equals_literal(token->value, ">")))
-                {
-                    isTokenClassified = true;
-                    token->end_position = source_file->col;
-                    hasLexicalError = false;
-                }
-                    // <=
-                else if ((source_file->actual_char == '=') && (string_equals_literal(token->value, "<")))
-                {
-                    isTokenClassified = true;
-                    token->end_position = source_file->col;
-                    hasLexicalError = false;
-                }
-                    // :=
-                else if ((source_file->actual_char == '=') && (string_equals_literal(token->value, ":")))
-                {
-                    isTokenClassified = true;
-                    token->end_position = source_file->col;
-                    hasLexicalError = false;
-                }
-                    // /*
-                else if ((source_file->actual_char == '*') && (string_equals_literal(token->value, "/")))
-                {
-                    token->token_class = SLASH_COMMENT;
-                }
-                else
-                {
-                    token->end_position = source_file->col;
-                    isTokenClassified = true;
-                    appendChar = false;
-                    hasLexicalError = false;
-                    rollback_actual_char = true;
-                }
-            }
+            try_classify_token(&states, token, source_file);
         }
         else
         {
-            // Start of a bracket comment
-            if (source_file->actual_char == '{')
-            {
-                token->token_class = BRACKET_COMMENT;
-            }
-                // Start of an identifier or keyword
-            else if (is_alpha(source_file->actual_char))
-            {
-                token->token_class = IDENTIFIER;
-
-            }
-                // Start of an integer or a real
-            else if (is_num(source_file->actual_char))
-            {
-                token->token_class = INTEGER;
-            }
-                // Start of a symbol or a slash comment
-            else if (is_symbol(source_file->actual_char))
-            {
-                token->token_class = SYMBOL;
-            }
+            try_start_token_parse(source_file->actual_char, token);
         }
 
-        if (appendChar)
+        if (states.appendChar)
         {
             append_char_to_token(token, source_file, source_file->actual_char);
         }
 
-        if (rollback_actual_char)
+        if (states.rollback_actual_char)
         {
             file_rollback_byte(source_file);
             token->end_position = source_file->col;
         }
     }
 
-    if (hasLexicalError)
+    if (states.hasLexicalError)
     {
-        treat_lexical_error(token, stop_on_error);
+        handle_lexical_error(token, stop_on_error);
     }
 
-    return !eof_found;
+    return !states.eof_found;
 }
 
-void treat_lexical_error(token_t *token, bool stop_on_error)
+void lexical_parser_states_init(lexical_parser_states_t *states)
+{
+    states->appendChar = true;
+    states->isTokenClassified = false;
+    states->hasLexicalError = true;
+    states->rollback_actual_char = false;
+    states->eof_found = false;
+}
+
+void try_start_token_parse(int actual_char, token_t *token)
+{
+    // Start of a bracket comment
+    if (actual_char == '{')
+    {
+        token->token_class = BRACKET_COMMENT;
+    }
+        // Start of an identifier or keyword
+    else if (is_alpha(actual_char))
+    {
+        token->token_class = IDENTIFIER;
+
+    }
+        // Start of an integer or a real
+    else if (is_num(actual_char))
+    {
+        token->token_class = INTEGER;
+    }
+        // Start of a symbol or a slash comment
+    else if (is_symbol(actual_char))
+    {
+        token->token_class = SYMBOL;
+    }
+}
+
+void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t *source_file)
+{
+    switch (token->token_class)
+    {
+        // Search for the end of a bracket comment
+        case BRACKET_COMMENT:
+            // FIXME: Dealt with log multiline comment's col
+            // End of a bracket comment
+            if (source_file->actual_char == '}')
+            {
+                token->end_position = source_file->col;
+                states->isTokenClassified = true;
+                states->hasLexicalError = false;
+            }
+                // Skip this char
+            else
+            {
+                states->appendChar = false;
+            }
+            break;
+            // Search for the end of a slash comment
+        case SLASH_COMMENT:
+            // FIXME: Dealt with log multiline comment's col
+            // possible end o a slash comment
+            if (string_equals_literal(token->value, "/**"))
+            {
+                if (source_file->actual_char == '/')
+                {
+                    token->end_position = source_file->col;
+                    states->isTokenClassified = true;
+                    states->hasLexicalError = false;
+                }
+                else
+                {
+                    states->appendChar = false;
+                    // Deal with sequence of '*'
+                    if (source_file->actual_char != '*')
+                    {
+                        string_pop_char(token->value);
+                    }
+                }
+            }
+                // Try to find the end of a slash comment
+            else if (source_file->actual_char == '*')
+            {
+                // For now just append to the value
+            }
+                // Skip this char
+            else
+            {
+                states->appendChar = false;
+            }
+            break;
+        case IDENTIFIER:
+            if (!is_alphanum(source_file->actual_char))
+            {
+                if (is_keyword(token->value))
+                {
+                    token->token_class = KEYWORD;
+                }
+
+                token->end_position = source_file->col;
+                states->isTokenClassified = true;
+                states->appendChar = false;
+                states->hasLexicalError = false;
+                states->rollback_actual_char = true;
+            }
+            break;
+        case INTEGER:
+            if (source_file->actual_char == '.')
+            {
+                token->token_class = REAL;
+            }
+            else if (!is_num(source_file->actual_char))
+            {
+                token->end_position = source_file->col;
+                states->isTokenClassified = true;
+                states->appendChar = false;
+                states->hasLexicalError = false;
+                states->rollback_actual_char = true;
+            }
+            break;
+        case REAL:
+            if (!is_num(source_file->actual_char))
+            {
+                states->isTokenClassified = true;
+                if (token->value->length > 2)
+                {
+                    token->end_position = source_file->col;
+                    states->appendChar = false;
+                    states->hasLexicalError = false;
+                    states->rollback_actual_char = true;
+                }
+            }
+            break;
+        case SYMBOL:
+            if(make_double_symbol(source_file->actual_char, token->value))
+            {
+                states->isTokenClassified = true;
+                token->end_position = source_file->col;
+                states->hasLexicalError = false;
+            }
+                // /*
+            else if ((source_file->actual_char == '*') && (string_equals_literal(token->value, "/")))
+            {
+                token->token_class = SLASH_COMMENT;
+            }
+            else
+            {
+                token->end_position = source_file->col;
+                states->isTokenClassified = true;
+                states->appendChar = false;
+                states->hasLexicalError = false;
+                states->rollback_actual_char = true;
+            }
+            break;
+        default:
+            log_with_color(RED, "INVALID LEXICAL STATE: ");
+            printf("Invalid state with Token:\n");
+            token_pretty_log(token);
+            throw_exception(INVALID_LEXICAL_PARSER_STATE);
+    }
+}
+
+void handle_lexical_error(token_t *token, bool stop_on_error)
 {
     switch (token->token_class)
     {
