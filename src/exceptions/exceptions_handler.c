@@ -10,6 +10,8 @@ void throw_exception(exception_t exception)
 {
     switch (exception)
     {
+        case EMPTY_EXCEPTION:
+            break;
         case ALLOCATION_FAILED:
             log_with_color_nl(RED, "Failed to allocate more memory!");
             exit(ALLOCATION_FAILED);

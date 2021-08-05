@@ -64,11 +64,12 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         if (states.rollback_actual_char)
         {
             file_rollback_byte(source_file);
-            token->end_position = source_file->col;
+            token->end_position.line = source_file->line;
+            token->end_position.col = source_file->col;
         }
     }
 
-    if (states.hasLexicalError)
+    if (token->token_class != EMPTY_TOKEN_CLASS && states.hasLexicalError)
     {
         handle_lexical_error(token, stop_on_error);
     }
@@ -120,7 +121,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             // End of a bracket comment
             if (source_file->actual_char == '}')
             {
-                token->end_position = source_file->col;
+                token->end_position.line = source_file->line;
+                token->end_position.col = source_file->col;
                 states->isTokenClassified = true;
                 states->hasLexicalError = false;
             }
@@ -138,7 +140,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             {
                 if (source_file->actual_char == '/')
                 {
-                    token->end_position = source_file->col;
+                    token->end_position.line = source_file->line;
+                    token->end_position.col = source_file->col;
                     states->isTokenClassified = true;
                     states->hasLexicalError = false;
                 }
@@ -171,7 +174,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
                     token->token_class = KEYWORD;
                 }
 
-                token->end_position = source_file->col;
+                token->end_position.line = source_file->line;
+                token->end_position.col = source_file->col;
                 states->isTokenClassified = true;
                 states->appendChar = false;
                 states->hasLexicalError = false;
@@ -185,7 +189,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             }
             else if (!is_num(source_file->actual_char))
             {
-                token->end_position = source_file->col;
+                token->end_position.line = source_file->line;
+                token->end_position.col = source_file->col;
                 states->isTokenClassified = true;
                 states->appendChar = false;
                 states->hasLexicalError = false;
@@ -198,7 +203,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
                 states->isTokenClassified = true;
                 if (token->value->length > 2)
                 {
-                    token->end_position = source_file->col;
+                    token->end_position.line = source_file->line;
+                    token->end_position.col = source_file->col;
                     states->appendChar = false;
                     states->hasLexicalError = false;
                     states->rollback_actual_char = true;
@@ -209,7 +215,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             if(make_double_symbol(source_file->actual_char, token->value))
             {
                 states->isTokenClassified = true;
-                token->end_position = source_file->col;
+                token->end_position.line = source_file->line;
+                token->end_position.col = source_file->col;
                 states->hasLexicalError = false;
             }
                 // /*
@@ -219,7 +226,8 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             }
             else
             {
-                token->end_position = source_file->col;
+                token->end_position.line = source_file->line;
+                token->end_position.col = source_file->col;
                 states->isTokenClassified = true;
                 states->appendChar = false;
                 states->hasLexicalError = false;
@@ -236,55 +244,61 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
 
 void handle_lexical_error(token_t *token, bool stop_on_error)
 {
+    printf("%zu:%zu~%zu:%zu: ", token->start_position.line + 1, token->start_position.col + 1,
+           token->end_position.line + 1, token->end_position.col + 1);
+    log_with_color(RED, "LEXICAL_ERROR: ");
+
+    exception_t exception = EMPTY_EXCEPTION;
+
     switch (token->token_class)
     {
         case BRACKET_COMMENT:
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid bracket comment at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_BRACKET_COMMENT);
-            }
+            // FIXME: log function with 3 args (error, expected, got)
+            log_with_color_nl(WHTB, "Invalid bracket comment");
+            log_with_color_nl(WHTB, "Expected:");
+            printf("\t{ ... }\n");
+            log_with_color(WHTB, "Got:\n");
+            printf("\t%s\n", token->value->buffer);
+            exception = LEX_INVALID_BRACKET_COMMENT;
             break;
         case SLASH_COMMENT:
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid slash comment at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_SLASH_COMMENT);
-            }
+            log_with_color_nl(WHTB, "Invalid slash comment");
+            log_with_color_nl(WHTB, "Expected:");
+            printf("\t/* ... */\n");
+            log_with_color(WHTB, "Got:\n");
+            printf("\t%s\n", token->value->buffer);
+            exception = LEX_INVALID_SLASH_COMMENT;
             break;
         case REAL:
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid real at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_FLOAT);
-            }
+            log_with_color_nl(WHTB, "Invalid real");
+            log_with_color_nl(WHTB, "Expected (ex.):");
+            printf("\t1.23\n");
+            log_with_color(WHTB, "Got:\n");
+            printf("\t%s\n", token->value->buffer);
+            exception = LEX_INVALID_FLOAT;
             break;
         case SYMBOL:
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid symbol at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_SYMBOL);
-            }
+            log_with_color_nl(WHTB, "Invalid symbol");
+            log_with_color_nl(WHTB, "Expected:");
+            printf("\t( | ) | * | / | + | - | <> | >= | <= | > | < | $ | : | , | ; | = | := | .\n");
+            log_with_color(WHTB, "Got:\n");
+            printf("\t%s\n", token->value->buffer);
+            exception = LEX_INVALID_SYMBOL;
             break;
         default:
             if (is_token_valid(token))
             {
-                log_with_color(RED, "INVALID LEXICAL ERROR: ");
-                printf("Invalid state with Token class = %s.\n", lexical_token_class_to_string(token->token_class));
+                log_with_color_nl(RED, "INVALID LEXICAL ERROR: ");
+                log_with_color_nl(WHTB, "Invalid state with Token:\n");
+                token_pretty_log(token);
                 throw_exception(INVALID_LEXICAL_ERROR_STATE);
             }
     }
+
+    if (stop_on_error)
+    {
+        throw_exception(exception);
+    }
+
     token->token_class = INVALID_TOKEN_CLASS;
 }

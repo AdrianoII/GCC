@@ -19,18 +19,25 @@ typedef enum
     INTEGER, // 1 | 123 | 11564869
     REAL, // 1.1 | 1.43333
     KEYWORD, // if | then | while | do | write | read | else | begin | end | program | real | integer | procedure | var
-    SYMBOL, // ( | ) | * | / | + | - | <> | >= | <= | > | < | $ | : | , | ; | = | == | := | .
+    SYMBOL, // ( | ) | * | / | + | - | <> | >= | <= | > | < | $ | : | , | ; | = | := | .
     SEPARATORS, // ' ' | \t | \n
 } lexical_token_class_t;
 
 const char *lexical_token_class_to_string(lexical_token_class_t class);
 
-typedef struct Token
+// FIXME: Maybe create a module for entities
+typedef struct {
+    size_t line;
+    size_t col;
+} token_position_t;
+
+void token_position_init(token_position_t *pos);
+
+typedef struct
 {
     lexical_token_class_t token_class;
-    size_t line;
-    size_t start_position;
-    size_t end_position;
+    token_position_t start_position;
+    token_position_t end_position;
     string_t *value; // Optional
 } token_t;
 

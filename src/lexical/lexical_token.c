@@ -26,6 +26,12 @@ const char *lexical_token_class_to_string(lexical_token_class_t class)
     return token_class_mapper[class];
 }
 
+void token_position_init(token_position_t *pos)
+{
+    pos->line = 0;
+    pos->col = 0;
+}
+
 token_t *token_init(void)
 {
     token_t *new_token = calloc(1, sizeof(token_t));
@@ -44,9 +50,8 @@ token_t *token_init(void)
 
 void token_reset(token_t *token)
 {
-    token->start_position = 0;
-    token->end_position = 0;
-    token->line = 0;
+    token_position_init(&token->start_position);
+    token_position_init(&token->end_position);
     token->token_class = EMPTY_TOKEN_CLASS;
     string_reset(token->value);
 }
@@ -76,9 +81,14 @@ void token_log(token_t *token)
 
     printf("{\n");
     printf("\ttoken_class: \"%s\"\n", lexical_token_class_to_string(token->token_class));
-    printf("\tline: %zu\n", token->line);
-    printf("\tstart_position: %zu\n", token->start_position);
-    printf("\tend_position: %zu\n", token->end_position);
+    printf("\tstart_position: {\n");
+    printf("\t\tline :%zu\n", token->start_position.line);
+    printf("\t\tcol: %zu", token->start_position.col);
+    printf("\t}\n");
+    printf("\tend_position: {\n");
+    printf("\t\tline :%zu\n", token->end_position.line);
+    printf("\t\tcol: %zu", token->end_position.col);
+    printf("\t}\n");
     printf("\tvalue: ");
     string_log(token->value);
     printf("}\n");
@@ -93,11 +103,11 @@ void append_char_to_token(token_t *token, file_t *file, const int c)
 {
     if (string_is_empty(token->value))
     {
-        token->line = file->line;
-        token->start_position = file->col - 1;
-        token->end_position = file->col - 1;
+        token->start_position.line = file->line;
+        token->start_position.col = file->col - 1;
+        token->end_position.line = file->line;
+        token->end_position.col = file->col - 1;
     }
 
-    // deal with new lines and update file handler???
     string_append_char(token->value, (char) c);
 }

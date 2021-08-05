@@ -1,2 +1,5 @@
-[0;31mLEXICAL_ERROR: [0m[0;32mInvalid bracket comment at line [0m1[0;32m.
-[0m
+1:1~1:1: [0;31mLEXICAL_ERROR: [0m[47mInvalid bracket comment[0m
+[47mExpected:[0m
+	{ ... }
+[47mGot:
+[0m	{

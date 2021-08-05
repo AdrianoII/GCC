@@ -56,4 +56,4 @@ tests : debug
 
 .PHONY : clean
 clean:
-	-rm out/GCC* out/*.o
+	-rm out/GCC* out/*.o tests/outputs/*.txt
