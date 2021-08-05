@@ -82,3 +82,16 @@ void token_pretty_log(token_t *token)
 {
     printf("< %s : %s >\n", lexical_token_class_to_string(token->token_class), token->value->buffer);
 }
+
+void append_char_to_token(token_t *token, file_t *file, const int c)
+{
+    if (string_is_empty(token->value))
+    {
+        token->line = file->line;
+        token->start_position = file->col - 1;
+        token->end_position = file->col - 1;
+    }
+
+    // deal with new lines and update file handler???
+    string_append_char(token->value, (char) c);
+}

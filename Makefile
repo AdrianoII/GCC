@@ -23,10 +23,10 @@ out/GCC: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_han
 out/lexical_analyzer.o: out/logs.o out/exceptions_handler.o out/file_handler.o
 	gcc $(CFLAGS) -c src/lexical/lexical_analyzer.c -o out/lexical_analyzer.o
 
-out/lexical_token.o: out/exceptions_handler.o out/string.o
+out/lexical_token.o: out/exceptions_handler.o out/string.o out/file_handler.o
 	gcc $(CFLAGS) -c src/lexical/lexical_token.c -o out/lexical_token.o
 
-out/file_handler.o: out/exceptions_handler.o
+out/file_handler.o: out/exceptions_handler.o out/logs.o
 	gcc $(CFLAGS) -c src/file_handler/file_handler.c -o out/file_handler.o
 
 out/cli.o: out/exceptions_handler.o out/logs.o

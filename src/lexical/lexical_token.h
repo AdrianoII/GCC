@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include "../string/string.h"
+#include "../file_handler/file_handler.h"
 
 typedef enum
 {
@@ -41,5 +42,7 @@ void token_destroy(token_t *token);
 void token_log(token_t *token);
 
 void token_pretty_log(token_t *token);
+
+void append_char_to_token(token_t *token, file_t *file, int c);
 
 #endif //GCC_LEXICAL_TOKEN_H

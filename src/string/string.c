@@ -115,3 +115,72 @@ void string_pop_char(string_t *string)
 {
     string->buffer[(string->length--) - 1] = '\0';
 }
+
+bool is_separator(int c)
+{
+    return (c == ' ') || (c == '\t') || (c == '\n');
+}
+
+bool is_alpha(int c)
+{
+    return (c > 64 && c < 91) || (c > 96 && c < 122);
+}
+
+bool is_num(int c)
+{
+    return (c > 47 && c < 58);
+}
+
+bool is_alphanum(int c)
+{
+    return is_alpha(c) || is_num(c);
+}
+
+bool is_keyword(string_t *string)
+{
+    const char *keywords[14] = {
+            "if",
+            "then",
+            "while",
+            "do",
+            "write",
+            "read",
+            "else",
+            "begin",
+            "end",
+            "program",
+            "real",
+            "integer",
+            "procedure",
+            "var"
+    };
+
+    bool token_is_keyword = false;
+
+    for (size_t i = 0; i < 14 && !token_is_keyword; i++)
+    {
+        token_is_keyword = string_equals_literal(string, keywords[i]);
+    }
+
+    return token_is_keyword;
+}
+
+bool is_symbol(int c)
+{
+    const char symbols[14] = {'(', ')', '*', '/', '+', '-', '<', '>', '$', ':', ',', ';', '=', '.'};
+
+    bool char_is_symbol = false;
+
+    for (size_t i = 0; i < 14 && !char_is_symbol; i++)
+    {
+        char_is_symbol = symbols[i] == c;
+    }
+
+    return char_is_symbol;
+}
+
+bool is_valid_char_value(int c)
+{
+    // Check if c is EOF or an ascii char.
+    return c >= -1 && c <= 127;
+}

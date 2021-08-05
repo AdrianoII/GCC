@@ -7,92 +7,7 @@
 #include "../logs/logs.h"
 #include "../exceptions/exceptions_handler.h"
 
-bool is_separator(int c);
-bool is_alpha(int c);
-bool is_num(int c);
-bool is_alphanum(int c);
-bool is_keyword(token_t *token);
-bool is_symbol(int c);
-
-void append_char_to_token(token_t *token, file_t *file, int c);
-
-
-bool is_separator(int c)
-{
-    return (c == ' ') || (c == '\t') || (c == '\n');
-}
-
-bool is_alpha(int c)
-{
-    return (c > 64 && c < 91) || (c > 96 && c < 122);
-}
-
-bool is_num(int c)
-{
-    return (c > 47 && c < 58);
-}
-
-bool is_alphanum(int c)
-{
-    return is_alpha(c) || is_num(c);
-}
-
-bool is_keyword(token_t *token)
-{
-    const char *keywords[14] = {
-            "if",
-            "then",
-            "while",
-            "do",
-            "write",
-            "read",
-            "else",
-            "begin",
-            "end",
-            "program",
-            "real",
-            "integer",
-            "procedure",
-            "var"
-    };
-
-    bool token_is_keyword = false;
-
-    for (size_t i = 0; i < 14 && !token_is_keyword; i++)
-    {
-        token_is_keyword = string_equals_literal(token->value, keywords[i]);
-    }
-
-    return token_is_keyword;
-}
-
-bool is_symbol(int c)
-{
-    const char symbols[14] = {'(', ')', '*', '/', '+', '-', '<', '>', '$', ':', ',', ';', '=', '.'};
-
-    bool char_is_symbol = false;
-
-    for (size_t i = 0; i < 14 && !char_is_symbol; i++)
-    {
-        char_is_symbol = symbols[i] == c;
-    }
-
-    return char_is_symbol;
-}
-
-void append_char_to_token(token_t *token, file_t *file, const int c)
-{
-    if (string_is_empty(token->value))
-    {
-        token->line = file->line;
-        token->start_position = file->col - 1;
-        token->end_position = file->col - 1;
-    }
-
-    // deal with new lines and update file handler???
-    string_append_char(token->value, c);
-}
-
+void treat_lexical_error(token_t *token, bool stop_on_error);
 
 bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 {
@@ -173,7 +88,7 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
             {
                 if (!is_alphanum(source_file->actual_char))
                 {
-                    if (is_keyword(token))
+                    if (is_keyword(token->value))
                     {
                         token->token_class = KEYWORD;
                     }
@@ -292,49 +207,54 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 
     if (hasLexicalError)
     {
-        if (token->token_class == BRACKET_COMMENT)
-        {
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid bracket comment at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_BRACKET_COMMENT);
-            }
-        } else if (token->token_class == SLASH_COMMENT)
-        {
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid slash comment at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_SLASH_COMMENT);
-            }
-        } else if (token->token_class == REAL)
-        {
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid real at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_FLOAT);
-            }
-        } else if (token->token_class == SYMBOL)
-        {
-            log_with_color(RED, "LEXICAL_ERROR: ");
-            log_with_color(GRN, "Invalid symbol at line ");
-            printf("%zu", token->line + 1);
-            log_with_color(GRN, ".\n");
-            if (stop_on_error)
-            {
-                throw_exception(LEX_INVALID_SYMBOL);
-            }
-        }
-        token->token_class = INVALID_TOKEN_CLASS;
+        treat_lexical_error(token, stop_on_error);
     }
 
     return !eof_found;
+}
+
+void treat_lexical_error(token_t *token, bool stop_on_error)
+{
+    if (token->token_class == BRACKET_COMMENT)
+    {
+        log_with_color(RED, "LEXICAL_ERROR: ");
+        log_with_color(GRN, "Invalid bracket comment at line ");
+        printf("%zu", token->line + 1);
+        log_with_color(GRN, ".\n");
+        if (stop_on_error)
+        {
+            throw_exception(LEX_INVALID_BRACKET_COMMENT);
+        }
+    } else if (token->token_class == SLASH_COMMENT)
+    {
+        log_with_color(RED, "LEXICAL_ERROR: ");
+        log_with_color(GRN, "Invalid slash comment at line ");
+        printf("%zu", token->line + 1);
+        log_with_color(GRN, ".\n");
+        if (stop_on_error)
+        {
+            throw_exception(LEX_INVALID_SLASH_COMMENT);
+        }
+    } else if (token->token_class == REAL)
+    {
+        log_with_color(RED, "LEXICAL_ERROR: ");
+        log_with_color(GRN, "Invalid real at line ");
+        printf("%zu", token->line + 1);
+        log_with_color(GRN, ".\n");
+        if (stop_on_error)
+        {
+            throw_exception(LEX_INVALID_FLOAT);
+        }
+    } else if (token->token_class == SYMBOL)
+    {
+        log_with_color(RED, "LEXICAL_ERROR: ");
+        log_with_color(GRN, "Invalid symbol at line ");
+        printf("%zu", token->line + 1);
+        log_with_color(GRN, ".\n");
+        if (stop_on_error)
+        {
+            throw_exception(LEX_INVALID_SYMBOL);
+        }
+    }
+    token->token_class = INVALID_TOKEN_CLASS;
 }

@@ -37,4 +37,15 @@ void string_append_char(string_t *string, char c);
 
 void string_pop_char(string_t *string);
 
+// Char utils
+bool is_separator(int c);
+bool is_alpha(int c);
+bool is_num(int c);
+bool is_alphanum(int c);
+bool is_symbol(int c);
+bool is_valid_char_value(int c);
+
+// String utils
+bool is_keyword(string_t *string);
+
 #endif //GCC_STRING_H
