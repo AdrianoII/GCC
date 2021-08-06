@@ -35,6 +35,7 @@ void parse_source_file(file_t *source_file, cli_args_t *args)
 int main(int argc, char *argv[])
 {
     cli_args_t *args = parse_args(argc, argv);
+
     if (args->logs)
     {
         cli_args_log(args);
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
     parse_source_file(source_file, args);
 
     file_destroy(source_file);
-    cli_destroy(args);
+    cli_args_destroy(args);
 
     return 0;
 }

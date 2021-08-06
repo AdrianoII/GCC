@@ -55,6 +55,7 @@ void test_lexemes(void) {
 }
 
 int main(void) {
+    log_with_color_nl(YELB, "Starting lexical parser tests!");
     test_lexemes();
     log_with_color_nl(GRN, "Lexical parser tests: OK");
 }
