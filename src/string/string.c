@@ -118,12 +118,12 @@ void string_pop_char(string_t *string)
 
 bool is_separator(int c)
 {
-    return (c == ' ') || (c == '\t') || (c == '\n');
+    return (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r');
 }
 
 bool is_alpha(int c)
 {
-    return (c > 64 && c < 91) || (c > 96 && c < 122);
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c < 'Z');
 }
 
 bool is_num(int c)
