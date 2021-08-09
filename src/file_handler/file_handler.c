@@ -42,7 +42,8 @@ int file_get_next_char(file_t *file)
     if (!is_valid_char_value(file->actual_char))
     {
         log_with_color_nl(RED, "INVALID CHARACTER VALUE!");
-        printf("FILE: %s\nCHARACTER VALUE: %d\n", file->path, file->actual_char);
+        printf("FILE: %s\nCHARACTER VALUE: %d at %zu:%zu\n", file->path, file->actual_char, file->line,
+               file->col + 1);
         throw_exception(INVALID_CHAR_FROM_FILE);
     }
 
@@ -50,12 +51,13 @@ int file_get_next_char(file_t *file)
     {
         ++file->line;
         file->col = 0;
-//        file->is_fresh_line = true;
+        //        file->is_fresh_line = true;
     }
     else if (file->is_fresh_line)
     {
         file->is_fresh_line = false;
-    } else
+    }
+    else
     {
         ++file->col;
     }
@@ -91,13 +93,15 @@ void file_rollback_byte(file_t *file)
             }
         }
 
-        while ((file->actual_char = fgetc(file->p_file)) != '\n');
+        while ((file->actual_char = fgetc(file->p_file)) != '\n')
+        {}
 
         fseek(file->p_file, -1, SEEK_CUR);
 
         --file->line;
         file->col = old_col;
-    } else
+    }
+    else
     {
         --file->col;
     }
