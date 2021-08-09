@@ -1,4 +1,4 @@
-1:1~1:1: [0;31mLEXICAL_ERROR: [0m[47mInvalid slash comment[0m
+1:1~1:1: [0;31mLEXICAL ERROR: [0m[47mInvalid slash comment[0m
 [47mExpected:[0m
 	/* ... */
 [47mGot:

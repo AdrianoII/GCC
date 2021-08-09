@@ -1,8 +1,0 @@
-< BRACKET_COMMENT : {} >
-< BRACKET_COMMENT : {} >
-< SLASH_COMMENT : /**/ >
-< SLASH_COMMENT : /**/ >
-< BRACKET_COMMENT : {} >
-< SLASH_COMMENT : /**/ >
-< SLASH_COMMENT : /**/ >
-< BRACKET_COMMENT : {} >
