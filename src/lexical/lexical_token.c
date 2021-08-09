@@ -52,13 +52,14 @@ void token_reset(token_t *token)
 {
     token_position_init(&token->start_position);
     token_position_init(&token->end_position);
-    token->token_class = EMPTY_TOKEN_CLASS;
+    token->class = EMPTY_TOKEN_CLASS;
     string_reset(token->value);
+    token->is_consumed = true;
 }
 
 bool is_token_valid(token_t *token)
 {
-    return token->token_class != EMPTY_TOKEN_CLASS && token->token_class != INVALID_TOKEN_CLASS;
+    return token->class != EMPTY_TOKEN_CLASS && token->class != INVALID_TOKEN_CLASS;
 }
 
 void token_destroy(token_t *token)
@@ -80,7 +81,7 @@ void token_log(token_t *token)
     }
 
     printf("{\n");
-    printf("\ttoken_class: \"%s\"\n", lexical_token_class_to_string(token->token_class));
+    printf("\ttoken_class: \"%s\"\n", lexical_token_class_to_string(token->class));
     printf("\tstart_position: {\n");
     printf("\t\tline :%zu\n", token->start_position.line);
     printf("\t\tcol: %zu", token->start_position.col);
@@ -96,7 +97,7 @@ void token_log(token_t *token)
 
 void token_pretty_log(token_t *token)
 {
-    printf("< %s : %s >\n", lexical_token_class_to_string(token->token_class), token->value->buffer);
+    printf("< %s : %s >\n", lexical_token_class_to_string(token->class), token->value->buffer);
 }
 
 void append_char_to_token(token_t *token, file_t *file, const int c)

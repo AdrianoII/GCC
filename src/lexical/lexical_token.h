@@ -35,10 +35,11 @@ void token_position_init(token_position_t *pos);
 
 typedef struct
 {
-    lexical_token_class_t token_class;
+    lexical_token_class_t class;
     token_position_t start_position;
     token_position_t end_position;
     string_t *value; // Optional
+    bool is_consumed;
 } token_t;
 
 token_t *token_init(void);

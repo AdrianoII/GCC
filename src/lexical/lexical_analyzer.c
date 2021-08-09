@@ -25,7 +25,12 @@ void handle_lexical_error(token_t *token, bool stop_on_error);
 
 bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 {
+    if (!token->is_consumed)
+    {
+        return true;
+    }
 
+    token_reset(token);
     lexical_parser_states_t states;
     lexical_parser_states_init(&states);
 
@@ -43,11 +48,13 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         }
 
         //Skip separators
-        if (token->token_class == EMPTY_TOKEN_CLASS && is_separator(source_file->actual_char))
+        if ((token->class == EMPTY_TOKEN_CLASS && is_separator(source_file->actual_char))
+            || source_file->actual_char == EOF)
         {
             states.appendChar = false;
         }
-        else if (is_token_valid(token))
+
+        if (is_token_valid(token))
         {
             try_classify_token(&states, token, source_file);
         }
@@ -69,11 +76,20 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         }
     }
 
-    if (token->token_class != EMPTY_TOKEN_CLASS && states.hasLexicalError)
+    if (token->class != EMPTY_TOKEN_CLASS && states.hasLexicalError)
     {
         handle_lexical_error(token, stop_on_error);
     }
+    else
+    {
+        token->is_consumed = false;
+    }
 
+    if (token->class == BRACKET_COMMENT || token->class == SLASH_COMMENT)
+    {
+        token->is_consumed = true;
+        get_next_token(source_file, token, stop_on_error);
+    }
     return !states.eof_found;
 }
 
@@ -91,29 +107,29 @@ void try_start_token_parse(int actual_char, token_t *token)
     // Start of a bracket comment
     if (actual_char == '{')
     {
-        token->token_class = BRACKET_COMMENT;
+        token->class = BRACKET_COMMENT;
     }
         // Start of an identifier or keyword
     else if (is_alpha(actual_char))
     {
-        token->token_class = IDENTIFIER;
+        token->class = IDENTIFIER;
 
     }
         // Start of an integer or a real
     else if (is_num(actual_char))
     {
-        token->token_class = INTEGER;
+        token->class = INTEGER;
     }
         // Start of a symbol or a slash comment
     else if (is_symbol(actual_char))
     {
-        token->token_class = SYMBOL;
+        token->class = SYMBOL;
     }
 }
 
 void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t *source_file)
 {
-    switch (token->token_class)
+    switch (token->class)
     {
         // Search for the end of a bracket comment
         case BRACKET_COMMENT:
@@ -171,7 +187,7 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             {
                 if (is_keyword(token->value))
                 {
-                    token->token_class = KEYWORD;
+                    token->class = KEYWORD;
                 }
 
                 token->end_position.line = source_file->line;
@@ -182,10 +198,13 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
                 states->rollback_actual_char = true;
             }
             break;
+        case KEYWORD:
+            states->hasLexicalError = false;
+            break;
         case INTEGER:
             if (source_file->actual_char == '.')
             {
-                token->token_class = REAL;
+                token->class = REAL;
             }
             else if (!is_num(source_file->actual_char))
             {
@@ -212,7 +231,7 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
             }
             break;
         case SYMBOL:
-            if(make_double_symbol(source_file->actual_char, token->value))
+            if (make_double_symbol(source_file->actual_char, token->value))
             {
                 states->isTokenClassified = true;
                 token->end_position.line = source_file->line;
@@ -222,7 +241,7 @@ void try_classify_token(lexical_parser_states_t *states, token_t *token, file_t 
                 // /*
             else if ((source_file->actual_char == '*') && (string_equals_literal(token->value, "/")))
             {
-                token->token_class = SLASH_COMMENT;
+                token->class = SLASH_COMMENT;
             }
             else
             {
@@ -246,11 +265,11 @@ void handle_lexical_error(token_t *token, bool stop_on_error)
 {
     printf("%zu:%zu~%zu:%zu: ", token->start_position.line + 1, token->start_position.col + 1,
            token->end_position.line + 1, token->end_position.col + 1);
-    log_with_color(RED, "LEXICAL_ERROR: ");
+    log_with_color(RED, "LEXICAL ERROR: ");
 
     exception_t exception = EMPTY_EXCEPTION;
 
-    switch (token->token_class)
+    switch (token->class)
     {
         case BRACKET_COMMENT:
             // FIXME: log function with 3 args (error, expected, got)
@@ -300,5 +319,5 @@ void handle_lexical_error(token_t *token, bool stop_on_error)
         throw_exception(exception);
     }
 
-    token->token_class = INVALID_TOKEN_CLASS;
+    token->class = INVALID_TOKEN_CLASS;
 }
