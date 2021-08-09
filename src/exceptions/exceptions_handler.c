@@ -39,6 +39,8 @@ void throw_exception(exception_t exception)
             exit(INVALID_LEXICAL_ERROR_STATE);
         case INVALID_LEXICAL_PARSER_STATE:
             exit(INVALID_LEXICAL_PARSER_STATE);
+        case SYN_ERROR:
+            exit(SYN_ERROR);
         default:
             exit(-1);
     }
