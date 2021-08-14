@@ -11,5 +11,4 @@
 
 void parse_source_file(file_t  *source_file, cli_args_t const *args);
 
-
 #endif //GCC_PARSER_H

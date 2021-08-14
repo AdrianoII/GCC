@@ -25,10 +25,10 @@ debug: CFLAGS += -g
 debug: out/GCC
 
 out/GCC: out/logs.o out/exceptions_handler.o out/string.o out/cli.o out/file_handler.o out/lexical_token.o \
- out/lexical_analyzer.o out/syntactic_analyzer.o out/parser.o
+ out/lexical_analyzer.o out/syntactic_analyzer.o out/parser.o out/source_file.o
 	clang $(CFLAGS) $(ASANFLAGS) src/main.c out/*.o -o out/GCC
 
-out/parser.o: out/lexical_analyzer.o out/lexical_analyzer.o
+out/parser.o: out/lexical_analyzer.o out/lexical_analyzer.o out/lexical_token.o
 	clang $(CFLAGS) -c src/parser/parser.c -o out/parser.o
 
 out/syntactic_analyzer.o: out/lexical_analyzer.o
@@ -36,6 +36,9 @@ out/syntactic_analyzer.o: out/lexical_analyzer.o
 
 out/lexical_analyzer.o: out/logs.o out/exceptions_handler.o out/file_handler.o
 	clang $(CFLAGS) -c src/lexical/lexical_analyzer.c -o out/lexical_analyzer.o
+
+out/source_file.o: out/lexical_token.o out/file_handler.o out/cli.o
+	clang $(CFLAGS) -c src/source_file/source_file.c -o out/source_file.o
 
 out/lexical_token.o: out/exceptions_handler.o out/string.o out/file_handler.o
 	clang $(CFLAGS) -c src/lexical/lexical_token.c -o out/lexical_token.o

@@ -10,4 +10,5 @@
 
 bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error);
 
+//void consume_token_until_equals(file_t *source_file, token_t *token, bool stop_on_error, )
 #endif //GCC_LEXICAL_ANALYZER_H

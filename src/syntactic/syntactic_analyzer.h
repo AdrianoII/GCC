@@ -8,8 +8,9 @@
 #include <stdbool.h>
 #include "../lexical/lexical_token.h"
 #include "../cli/cli.h"
+#include "../source_file/source_file.h"
 
-void start_syntactic_analysis(token_t *token, file_t *file, cli_args_t const *args, size_t *num_errors);
+void start_syntactic_analysis(source_file_metadata_t * source_file_metadata);
 
 
 #endif //GCC_SYNTACTIC_ANALYZER_H

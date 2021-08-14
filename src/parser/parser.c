@@ -28,18 +28,20 @@ void parse_source_file(file_t  *const source_file, cli_args_t const *const args)
         }
     }
     else
-    {   size_t num_errors = 0;
-        start_syntactic_analysis(token, source_file, args, &num_errors);
-        if (num_errors == 0)
+    {
+        source_file_metadata_t  * const metadata = source_file_metadata_init(token, source_file, args);
+        start_syntactic_analysis(metadata);
+        if (metadata->num_errors == 0)
         {
             log_with_color_nl(GRN, "Source file is syntactic correct!");
         }
         else
         {
             log_with_color(RED, "Invalid source file: ");
-            printf("%zu", num_errors);
+            printf("%zu", metadata->num_errors);
             log_with_color_nl(RED, " errors found.");
         }
+        source_file_metadata_destroy(metadata);
     }
 
     token_destroy(token);
