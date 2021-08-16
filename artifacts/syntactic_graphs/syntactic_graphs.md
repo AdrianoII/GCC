@@ -2,11 +2,11 @@
 
 * \<programa\>
 
-  ![\<programa\>](./programa.png)
+  ![\<programa\>](./programa.svg)
 
 * \<corpo\>
 
-  ![\<corpo\>](./corpo.png)
+  ![\<corpo\>](./corpo.svg)
 
 * \<dc\>
 
@@ -22,11 +22,11 @@
 
 * \<tipo_var\>
 
-  ![\<tipo_var\>](./tipo_var.png)
+  ![\<tipo_var\>](./tipo_var.svg)
 
 * \<variaveis\>
 
-  ![\<variaveis\>](./variaveis.png)
+  ![\<variaveis\>](./variaveis.svg)
 
 * \<mais_var\>
 
@@ -34,11 +34,11 @@
 
 * \<dc_p\>
 
-  ![\<dc_p\>](./dc_p.png)
+  ![\<dc_p\>](./dc_p.svg)
 
 * \<parametros\>
 
-  ![\<parametros\>](./parametros.png)
+  ![\<parametros\>](./parametros.svg)
 
 * \<lista_par\>
 
@@ -62,11 +62,11 @@
 
 * \<lista_arg\>
 
-![\<lista_arg\>](./lista_arg.png)
+![\<lista_arg\>](./lista_arg.svg)
 
 * \<argumentos\>
 
-![\<argumentos\>](./argumentos.png)
+![\<argumentos\>](./argumentos.svg)
 
 * \<mais_ident\>
 
@@ -86,7 +86,7 @@
 
 * \<comando\>
 
-![\<comando\>](./comando.png)
+![\<comando\>](./comando.svg)
 
 * \<restoIdent\>
 
@@ -130,4 +130,4 @@
 
 * \<fator\>
 
-![\<fator\>](./fator.png)
+![\<fator\>](./fator.svg)
