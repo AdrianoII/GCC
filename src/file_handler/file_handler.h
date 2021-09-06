@@ -26,4 +26,6 @@ int file_get_next_char(file_t *file);
 
 void file_rollback_byte(file_t *file);
 
+void file_log(file_t *file);
+
 #endif //GCC_FILE_HANDLER_H

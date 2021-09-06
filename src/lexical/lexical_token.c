@@ -5,7 +5,7 @@
 #include "lexical_token.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../exceptions/exceptions_handler.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
 
 const char *lexical_token_class_to_string(lexical_token_class_t class)
 {
@@ -34,18 +34,35 @@ void token_position_init(token_position_t *pos)
 
 token_t *token_init(void)
 {
-    token_t *new_token = calloc(1, sizeof(token_t));
-
-    if (new_token == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    token_t *new_token = s_mem_alloc(1, sizeof(token_t));
 
     new_token->value = string_init();
 
     token_reset(new_token);
 
     return new_token;
+}
+
+token_t *token_copy(token_t const * const token)
+{
+    token_t *new_token = s_mem_alloc(1, sizeof(token_t));
+
+    new_token->value = string_copy(token->value);
+    new_token->class = token->class;
+    new_token->start_position = token->start_position;
+    new_token->end_position = token->end_position;
+    new_token->is_consumed = token->is_consumed;
+
+    return new_token;
+}
+
+void token_copy_to(token_t const *const token, token_t * const token2)
+{
+    token2->is_consumed = token->is_consumed;
+    token2->value = string_copy(token->value);
+    token2->start_position = token->start_position;
+    token2->end_position = token->end_position;
+    token2->class = token->class;
 }
 
 void token_reset(token_t *token)
@@ -68,7 +85,7 @@ void token_destroy(token_t *token)
     {
         string_destroy(token->value);
     }
-    free(token);
+    remove_elem_free_list(token, true);
 }
 
 void token_log(token_t *token)
@@ -91,7 +108,7 @@ void token_log(token_t *token)
     printf("\t\tcol: %zu", token->end_position.col);
     printf("\t}\n");
     printf("\tvalue: ");
-    string_log(token->value);
+    string_log(token->value, 0);
     printf("}\n");
 }
 

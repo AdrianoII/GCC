@@ -6,25 +6,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../exceptions/exception.h"
-#include "../exceptions/exceptions_handler.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
+
+bool literal_equals(const char *const s1, const char *const s2)
+{
+    return strcmp(s1, s2) == 0;
+}
 
 string_t *string_init(void)
 {
-    string_t *new_string = calloc(1, sizeof(string_t));
-
-    if (new_string == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    string_t *new_string = s_mem_alloc(1, sizeof(string_t));
 
     new_string->max_size = INIT_STRING_SIZE;
-    new_string->buffer = calloc(new_string->max_size, sizeof(char));
-
-    if (new_string->buffer == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    new_string->buffer = s_mem_alloc(new_string->max_size, sizeof(char));
 
     string_reset(new_string);
 
@@ -41,29 +35,28 @@ void string_destroy(string_t *string)
 {
     if (string != NULL)
     {
-        free(string->buffer);
+        remove_elem_free_list(string->buffer, true);
     }
-    free(string);
+    remove_elem_free_list(string, true);
 }
 
 void string_realloc(string_t *string)
 {
-    size_t new_buffer_size = string->max_size * STRING_REALLOC_FACTOR;
-    char *new_buffer = realloc(string->buffer, new_buffer_size);
-
-    if (new_buffer == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
-
-    size_t diff_buffer_size = new_buffer_size - string->max_size;
-    char *p_diff_buffer_start = new_buffer + string->max_size;
-    memset(p_diff_buffer_start, '\0', diff_buffer_size);
-    string->buffer = new_buffer;
-    string->max_size = new_buffer_size;
+    string_realloc_to_n(string, string->max_size * STRING_REALLOC_FACTOR);
 }
 
-bool string_equals(string_t *s1, string_t *s2)
+void string_realloc_to_n(string_t *string, size_t const n)
+{
+    string->buffer = s_mem_realloc(string->buffer, string->max_size, n);
+    string->max_size = n;
+    if (string->length > n)
+    {
+        string->buffer[n - 1] = '\0';
+         string->length = n - 1;
+    }
+}
+
+bool string_equals(string_t const *const s1, string_t const *const s2)
 {
     return strcmp(s1->buffer, s2->buffer) == 0;
 }
@@ -78,27 +71,32 @@ bool string_is_empty(string_t *s)
     return string_equals_literal(s, "");
 }
 
-void string_log(string_t *string)
+void string_log(string_t *string, size_t ident_level)
 {
-    printf("STRING:\n");
+    char *ident = calloc(ident_level + 1, sizeof(char));
+
+    memset(ident,  '\t', ident_level);
 
     if (string == NULL)
     {
-        printf("{}\n");
+        printf("%s{},\n", ident);
         return;
     }
 
-    printf("{\n\tlength: %zu,\n\tmax_size: %zu,\n\t", string->length, string->max_size);
+    printf("%s{\n", ident);
+    printf("%s\t\"length\": %zu,\n", ident, string->length);
+    printf("%s\t\"max_size\": %zu,\n\t", ident, string->max_size);
     if (string->buffer == NULL)
     {
-        printf("buffer: null,\n");
+        printf("%s\"buffer\": null,\n", ident);
     }
     else
     {
-        printf("buffer: \"%s\",\n", string->buffer);
+        printf("%s\"buffer\": \"%s\",\n", ident, string->buffer);
     }
 
-    printf("}\n");
+    printf("%s},\n", ident);
+    free(ident);
 }
 
 void string_append_char(string_t *string, char c)
@@ -191,4 +189,16 @@ bool make_double_symbol(int c, string_t *string)
            || ((c == '=') && (string_equals_literal(string, ">"))) // >=
            || ((c == '=') && (string_equals_literal(string, "<"))) // <=
            || ((c == '=') && (string_equals_literal(string, ":"))); // :=
+}
+
+string_t *string_copy(string_t const *const string)
+{
+    string_t *new_s = string_init();
+
+    string_realloc_to_n(new_s, string->max_size);
+    memcpy(new_s->buffer, string->buffer, string->max_size);
+    new_s->max_size = string->max_size;
+    new_s->length = string->length;
+
+    return new_s;
 }

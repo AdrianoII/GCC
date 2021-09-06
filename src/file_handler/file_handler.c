@@ -2,37 +2,22 @@
 // Created by adrianoii on 24/07/2021.
 //
 #include "file_handler.h"
-#include <stdlib.h>
-#include "../exceptions/exceptions_handler.h"
 #include "../logs/logs.h"
+#include "../exceptions/exceptions_handler.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
 
 file_t *file_init(const char *file_path)
 {
-    file_t *new_file = calloc(1, sizeof(file_t));
-
-    if (new_file == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    file_t *new_file = s_mem_alloc(1, sizeof(file_t));
 
     new_file->path = file_path;
     new_file->line = 0;
     new_file->col = 0;
     new_file->is_fresh_line = false;
 
-    new_file->p_file = fopen(new_file->path, "r");
-    if (new_file->p_file == NULL)
-    {
-        throw_exception(INVALID_FILE);
-    }
+    new_file->p_file = s_fopen(new_file->path, "r");
 
     return new_file;
-}
-
-void file_destroy(file_t *file)
-{
-    fclose(file->p_file);
-    free(file);
 }
 
 int file_get_next_char(file_t *file)
@@ -88,6 +73,12 @@ void file_rollback_byte(file_t *file)
 
             if (ftell(file->p_file) == 0)
             {
+                // Edge case when the first byte of the file is \n
+                if ((file->actual_char = fgetc(file->p_file)) != '\n')
+                {
+                    fseek(file->p_file, -1, SEEK_CUR);
+                }
+
                 ++old_col;
                 break;
             }
@@ -106,4 +97,16 @@ void file_rollback_byte(file_t *file)
         --file->col;
     }
 
+}
+
+
+// FIXME: dasdasds
+void file_log(file_t *file)
+{
+    printf("file{\n");
+    printf("path %s\n", file->path);
+    printf("line %zu\n", file->line);
+    printf("col %zu\n", file->col);
+    printf("is_fresh_line %d\n", file->is_fresh_line);
+    printf("actual_char %c\n", file->actual_char);
 }

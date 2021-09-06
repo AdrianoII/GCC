@@ -44,6 +44,10 @@ typedef struct
 
 token_t *token_init(void);
 
+token_t *token_copy(token_t const *token);
+
+void token_copy_to(token_t const *token, token_t *token2);
+
 bool is_token_valid(token_t *token);
 
 void token_reset(token_t *token);

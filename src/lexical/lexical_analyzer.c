@@ -25,6 +25,9 @@ void handle_lexical_error(token_t *token, bool stop_on_error);
 
 bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
 {
+    token_t old_token;
+    token_copy_to(token, &old_token);
+
     if (!token->is_consumed)
     {
         return true;
@@ -90,6 +93,13 @@ bool get_next_token(file_t *source_file, token_t *token, bool stop_on_error)
         token->is_consumed = true;
         get_next_token(source_file, token, stop_on_error);
     }
+
+    if (states.eof_found && token->class == EMPTY_TOKEN_CLASS && old_token.class != BRACKET_COMMENT &&
+        old_token.class != SLASH_COMMENT)
+    {
+        token_copy_to(&old_token, token);
+    }
+
     return !states.eof_found;
 }
 

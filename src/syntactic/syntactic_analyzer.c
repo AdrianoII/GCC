@@ -4,345 +4,385 @@
 
 #include "syntactic_analyzer.h"
 #include <stdbool.h>
-#include "../lexical/lexical_analyzer.h"
 #include "../logs/logs.h"
 #include "../exceptions/exceptions_handler.h"
+#include "../lexical/lexical_analyzer.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
+//#include "../semantic/semantic_actions.h"
 
 void throw_syntactic_error(char const *error_msg, char const *expected_msg, exception_t exception,
                            source_file_metadata_t *metadata);
-// Nonterminals
-void programa(source_file_metadata_t *source_file_metadata);
-void corpo(source_file_metadata_t *source_file_metadata);
-void dc(source_file_metadata_t *source_file_metadata);
-void mais_dc(source_file_metadata_t *source_file_metadata);
-void dc_v(source_file_metadata_t *source_file_metadata);
-void variaveis(source_file_metadata_t *source_file_metadata);
-void mais_var(source_file_metadata_t *source_file_metadata);
-void tipo_var(source_file_metadata_t *source_file_metadata);
-void dc_p(source_file_metadata_t *source_file_metadata);
-void parametros(source_file_metadata_t *source_file_metadata);
-void lista_par(source_file_metadata_t *source_file_metadata);
-void mais_par(source_file_metadata_t *source_file_metadata);
-void corpo_p(source_file_metadata_t *source_file_metadata);
-void dc_loc(source_file_metadata_t *source_file_metadata);
-void mais_dcloc(source_file_metadata_t *source_file_metadata);
-void comandos(source_file_metadata_t *source_file_metadata);
-void comando(source_file_metadata_t *source_file_metadata);
-void condicao(source_file_metadata_t *source_file_metadata);
-void expressao(source_file_metadata_t *source_file_metadata);
-void termo(source_file_metadata_t *source_file_metadata);
-void op_un(source_file_metadata_t *source_file_metadata);
-void fator(source_file_metadata_t *source_file_metadata);
-void mais_fatores(source_file_metadata_t *source_file_metadata);
-void op_mul(source_file_metadata_t *source_file_metadata);
-void outros_termos(source_file_metadata_t *source_file_metadata);
-void op_ad(source_file_metadata_t *source_file_metadata);
-void relacao(source_file_metadata_t *source_file_metadata);
-void pfalsa(source_file_metadata_t *source_file_metadata);
-void restoIdent(source_file_metadata_t *source_file_metadata);
-void lista_arg(source_file_metadata_t *source_file_metadata);
-void argumentos(source_file_metadata_t *source_file_metadata);
-void mais_ident(source_file_metadata_t *source_file_metadata);
-void mais_comandos(source_file_metadata_t *source_file_metadata);
+void throw_semantic_error(exception_t exception, source_file_metadata_t *metadata);
 
-void start_syntactic_analysis(source_file_metadata_t *const source_file_metadata)
+// Nonterminals
+void programa(source_file_metadata_t *metadata);
+void corpo(source_file_metadata_t *metadata);
+void dc(source_file_metadata_t *metadata);
+void mais_dc(source_file_metadata_t *metadata);
+void dc_v(source_file_metadata_t *metadata);
+void variaveis(source_file_metadata_t *metadata);
+void mais_var(source_file_metadata_t *metadata);
+void tipo_var(source_file_metadata_t *metadata);
+void dc_p(source_file_metadata_t *metadata);
+void parametros(source_file_metadata_t *metadata);
+void lista_par(source_file_metadata_t *metadata);
+void mais_par(source_file_metadata_t *metadata);
+void corpo_p(source_file_metadata_t *metadata);
+void dc_loc(source_file_metadata_t *metadata);
+void mais_dcloc(source_file_metadata_t *metadata);
+void comandos(source_file_metadata_t *metadata);
+void comando(source_file_metadata_t *metadata);
+void condicao(source_file_metadata_t *metadata);
+void expressao(source_file_metadata_t *metadata);
+void termo(source_file_metadata_t *metadata);
+void op_un(source_file_metadata_t *metadata);
+void fator(source_file_metadata_t *metadata);
+void mais_fatores(source_file_metadata_t *metadata);
+void op_mul(source_file_metadata_t *metadata);
+void outros_termos(source_file_metadata_t *metadata);
+void op_ad(source_file_metadata_t *metadata);
+void relacao(source_file_metadata_t *metadata);
+void pfalsa(source_file_metadata_t *metadata);
+void restoIdent(source_file_metadata_t *metadata);
+void lista_arg(source_file_metadata_t *metadata);
+void argumentos(source_file_metadata_t *metadata);
+void mais_ident(source_file_metadata_t *metadata);
+void mais_comandos(source_file_metadata_t *metadata);
+
+void start_syntactic_analysis(source_file_metadata_t *const metadata)
 {
-    programa(source_file_metadata);
+    programa(metadata);
 }
 
-void programa(source_file_metadata_t *const source_file_metadata)
+void programa(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "program"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "program"))
     {
-        source_file_metadata->token->is_consumed = true;
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == IDENTIFIER)
+        metadata->token->is_consumed = true;
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == IDENTIFIER)
         {
-            source_file_metadata->token->is_consumed = true;
-            corpo(source_file_metadata);
-            get_next_token(source_file_metadata->file, source_file_metadata->token,
-                           source_file_metadata->args->stop_on_error);
-            if (source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, "."))
+            metadata->token->is_consumed = true;
+
+            if (!st_add_proc(metadata->st, metadata->token->value))
             {
-                source_file_metadata->token->is_consumed = true;
+                throw_semantic_error(ST_PROC_ALREADY_DECLARED, metadata);
+            }
+
+            corpo(metadata);
+            get_next_token(metadata->file, metadata->token,
+                           metadata->args->stop_on_error);
+            if (metadata->token->class == SYMBOL &&
+                string_equals_literal(metadata->token->value, "."))
+            {
+                metadata->token->is_consumed = true;
                 return;
             }
             else
             {
-                source_file_metadata->tip = "Check the end of your file to see if you missed the '.'";
-                throw_syntactic_error("Missing . at the end of source file", ".", SYN_ERROR, source_file_metadata);
+                metadata->tip = "Check the end of your file to see if you missed the '.'";
+                throw_syntactic_error("Missing . at the end of source file", ".", SYN_ERROR, metadata);
             }
         }
         else
         {
-            source_file_metadata->tip = "Identifiers should be a sequence of letters and digits,"
-                                        "but starting with a letter";
+            metadata->tip = "Identifiers should be a sequence of letters and digits,"
+                            "but starting with a letter";
             throw_syntactic_error("Invalid identifier for program", "A valid identifier, e.g. \"square_root\"",
-                                  SYN_ERROR, source_file_metadata);
+                                  SYN_ERROR, metadata);
         }
     }
     else
     {
-        source_file_metadata->tip = "Check the start of your source file to verify if you miss the program keyword";
-        throw_syntactic_error("Invalid key word", "program", SYN_ERROR, source_file_metadata);
+        metadata->tip = "Check the start of your source file to verify if you miss the program keyword";
+        throw_syntactic_error("Invalid key word", "program", SYN_ERROR, metadata);
     }
 }
 
-void corpo(source_file_metadata_t *const source_file_metadata)
+void corpo(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    dc(source_file_metadata);
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "begin"))
+    dc(metadata);
+
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "begin"))
     {
-        source_file_metadata->token->is_consumed = true;
-        comandos(source_file_metadata);
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == KEYWORD &&
-            string_equals_literal(source_file_metadata->token->value, "end"))
+        metadata->token->is_consumed = true;
+        comandos(metadata);
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == KEYWORD &&
+            string_equals_literal(metadata->token->value, "end"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss an \"end\" keyword on the main procedure body?";
-            throw_syntactic_error("Invalid key word", "end", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss an \"end\" keyword on the main procedure body?";
+            throw_syntactic_error("Invalid key word", "end", SYN_ERROR, metadata);
         }
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss a \"begin\" keyword on the main procedure body?";
-        throw_syntactic_error("Invalid key word", "begin", SYN_ERROR, source_file_metadata);
+        metadata->tip = "Did you miss a \"begin\" keyword on the main procedure body?";
+        throw_syntactic_error("Invalid key word", "begin", SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(corpo) = {.}
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               !(source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, ".")))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               !(metadata->token->class == SYMBOL &&
+                 string_equals_literal(metadata->token->value, ".")))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void dc(source_file_metadata_t *const source_file_metadata)
+void dc(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+
     // lookahead
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "var"))
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "var"))
     {
-        dc_v(source_file_metadata);
+        dc_v(metadata);
 
-        mais_dc(source_file_metadata);
+        mais_dc(metadata);
 
         return;
     }
-    else if (source_file_metadata->token->class == KEYWORD &&
-             string_equals_literal(source_file_metadata->token->value, "procedure"))
+    else if (metadata->token->class == KEYWORD &&
+             string_equals_literal(metadata->token->value, "procedure"))
     {
-        dc_p(source_file_metadata);
-        mais_dc(source_file_metadata);
+        dc_p(metadata);
+
+        st_return_global_scope(metadata->st);
+
+        mais_dc(metadata);
         return;
     }
     // Ɛ
 }
 
-void mais_dc(source_file_metadata_t *const source_file_metadata)
+void mais_dc(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ";"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ";"))
     {
-        source_file_metadata->token->is_consumed = true;
-        dc(source_file_metadata);
+        metadata->token->is_consumed = true;
+        dc(metadata);
     }
     // Ɛ
 }
 
-void dc_v(source_file_metadata_t *const source_file_metadata)
+void dc_v(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "var"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "var"))
     {
-        source_file_metadata->token->is_consumed = true;
-        variaveis(source_file_metadata);
+        metadata->token->is_consumed = true;
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, ":"))
+        variaveis(metadata);
+
+        if (!st_add_vars(metadata->st))
         {
-            source_file_metadata->token->is_consumed = true;
-            tipo_var(source_file_metadata);
+            throw_semantic_error(ST_VAR_ALREADY_DECLARED, metadata);
+        }
+
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, ":"))
+        {
+            metadata->token->is_consumed = true;
+            tipo_var(metadata);
+
+            analysis_queue_destroy(&metadata->st->analysis_queue);
+
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss the \":\" symbol in a variable declaration?";
-            throw_syntactic_error("Invalid symbol", ":", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss the \":\" symbol in a variable declaration?";
+            throw_syntactic_error("Invalid symbol", ":", SYN_ERROR, metadata);
         }
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss the \"var\" keyword in a variable declaration?";
-        throw_syntactic_error("Invalid key word", "var", SYN_ERROR, source_file_metadata);
+        metadata->tip = "Did you miss the \"var\" keyword in a variable declaration?";
+        throw_syntactic_error("Invalid key word", "var", SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(DC_V) = {;, begin}
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                 string_equals_literal(source_file_metadata->token->value, ";")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                 string_equals_literal(source_file_metadata->token->value, "begin"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ";")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "begin"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void variaveis(source_file_metadata_t *const source_file_metadata)
+void variaveis(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == IDENTIFIER)
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == IDENTIFIER)
     {
-        source_file_metadata->token->is_consumed = true;
-        mais_var(source_file_metadata);
+        metadata->token->is_consumed = true;
+
+        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
+
+        mais_var(metadata);
         return;
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "A valid identifier is a sequence of letters,  uppercase or not, and digits, "
-                                    "starting with a letter";
+        metadata->tip = "A valid identifier is a sequence of letters,  uppercase or not, and digits, "
+                        "starting with a letter";
         throw_syntactic_error("Invalid identifier for variable", "A valid identifier, e.g. \"square_root\"",
-                              SYN_ERROR, source_file_metadata);
+                              SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(variaveis) = {), :}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                 string_equals_literal(source_file_metadata->token->value, ")")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                 string_equals_literal(source_file_metadata->token->value, ":"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ")")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ":"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void mais_var(source_file_metadata_t *const source_file_metadata)
+void mais_var(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ","))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ","))
     {
-        source_file_metadata->token->is_consumed = true;
-        variaveis(source_file_metadata);
+        metadata->token->is_consumed = true;
+        variaveis(metadata);
     }
     // Ɛ
 }
 
-void tipo_var(source_file_metadata_t *const source_file_metadata)
+void tipo_var(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "real"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "real"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
+
+        st_add_vars_type(metadata->st, REAL_DATA_TYPE);
+
         return;
     }
-    else if (source_file_metadata->token->class == KEYWORD &&
-             string_equals_literal(source_file_metadata->token->value, "integer"))
+    else if (metadata->token->class == KEYWORD &&
+             string_equals_literal(metadata->token->value, "integer"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
+
+        st_add_vars_type(metadata->st, INTEGER_DATA_TYPE);
+
         return;
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you use a valid lalg type, like real or integer?";
+        metadata->tip = "Did you use a valid lalg type, like real or integer?";
         throw_syntactic_error("Invalid type for variable", "real | integer", SYN_ERROR,
-                              source_file_metadata);
+                              metadata);
     }
 
     if (error_happened)
     {
         // NEXT(tipo_var) = {), ;, begin}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                 string_equals_literal(source_file_metadata->token->value, ")")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                 string_equals_literal(source_file_metadata->token->value, ";")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                 string_equals_literal(source_file_metadata->token->value, "begin"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ")")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ";")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "begin"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void dc_p(source_file_metadata_t *const source_file_metadata)
+void dc_p(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "procedure"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "procedure"))
     {
-        source_file_metadata->token->is_consumed = true;
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == IDENTIFIER)
+        metadata->token->is_consumed = true;
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == IDENTIFIER)
         {
-            source_file_metadata->token->is_consumed = true;
-            parametros(source_file_metadata);
-            corpo_p(source_file_metadata);
+            metadata->token->is_consumed = true;
+
+            if (!st_add_proc(metadata->st, metadata->token->value))
+            {
+                throw_semantic_error(ST_PROC_ALREADY_DECLARED, metadata);
+            }
+
+            parametros(metadata);
+
+            corpo_p(metadata);
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "A valid identifier is a sequence of letters,  uppercase or not, and digits, "
-                                        "starting with a letter";
+            metadata->tip = "A valid identifier is a sequence of letters,  uppercase or not, and digits, "
+                            "starting with a letter";
             throw_syntactic_error("Invalid identifier for procedure", "A valid identifier, e.g. \"square_root\"",
-                                  SYN_ERROR, source_file_metadata);
+                                  SYN_ERROR, metadata);
         }
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss the \"procedure\" keyword in the procedure declaration?";
-        throw_syntactic_error("Invalid keyword", "procedure", SYN_ERROR, source_file_metadata);
+        metadata->tip = "Did you miss the \"procedure\" keyword in the procedure declaration?";
+        throw_syntactic_error("Invalid keyword", "procedure", SYN_ERROR, metadata);
     }
 
 
@@ -354,31 +394,32 @@ void dc_p(source_file_metadata_t *const source_file_metadata)
     }
 }
 
-void parametros(source_file_metadata_t *const source_file_metadata)
+void parametros(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, "("))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "("))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        lista_par(source_file_metadata);
+        lista_par(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, ")"))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, ")"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
+
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \")\" in the procedure declaration?";
+            metadata->tip = "Did you miss a \")\" in the procedure declaration?";
             throw_syntactic_error("Invalid symbol in procedure declaration", ")", SYN_ERROR,
-                                  source_file_metadata);
+                                  metadata);
         }
     }
     // Ɛ
@@ -387,106 +428,116 @@ void parametros(source_file_metadata_t *const source_file_metadata)
     {
         // NEXT(parametros) = {begin, var}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == KEYWORD &&
-                 string_equals_literal(source_file_metadata->token->value, "begin")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                 string_equals_literal(source_file_metadata->token->value, "var"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "begin")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "var"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void mais_par(source_file_metadata_t *const source_file_metadata)
+void mais_par(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ";"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ";"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        lista_par(source_file_metadata);
+        lista_par(metadata);
 
         return;
     }
     // Ɛ
 }
 
-void lista_par(source_file_metadata_t *const source_file_metadata)
+void lista_par(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    variaveis(source_file_metadata);
+    variaveis(metadata);
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ":"))
+    if (!st_add_vars(metadata->st))
     {
-        source_file_metadata->token->is_consumed = true;
+        throw_semantic_error(ST_VAR_ALREADY_DECLARED, metadata);
+    }
 
-        tipo_var(source_file_metadata);
-        mais_par(source_file_metadata);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ":"))
+    {
+        metadata->token->is_consumed = true;
+
+        tipo_var(metadata);
+
+        st_proc_add_params(metadata->st);
+
+        analysis_queue_destroy(&metadata->st->analysis_queue);
+
+        mais_par(metadata);
 
         return;
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss a \":\" in the parameter declaration?";
+        metadata->tip = "Did you miss a \":\" in the parameter declaration?";
         throw_syntactic_error("Invalid symbol in procedure declaration parameters", ":", SYN_ERROR,
-                              source_file_metadata);
+                              metadata);
     }
 
     if (error_happened)
     {
         // NEXT(lista_par) = {)}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               !(source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, ")")))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               !(metadata->token->class == SYMBOL &&
+                 string_equals_literal(metadata->token->value, ")")))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void corpo_p(source_file_metadata_t *const source_file_metadata)
+void corpo_p(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    dc_loc(source_file_metadata);
+    dc_loc(metadata);
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "begin"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "begin"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        comandos(source_file_metadata);
+        comandos(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == KEYWORD &&
-            string_equals_literal(source_file_metadata->token->value, "end"))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == KEYWORD &&
+            string_equals_literal(metadata->token->value, "end"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss an \"end\" in the procedure body?";
+            metadata->tip = "Did you miss an \"end\" in the procedure body?";
             throw_syntactic_error("Invalid keyword in procedure definition", "end", SYN_ERROR,
-                                  source_file_metadata);
+                                  metadata);
         }
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss an \"begin\" in the procedure body?";
+        metadata->tip = "Did you miss an \"begin\" in the procedure body?";
         throw_syntactic_error("Invalid keyword in procedure definition", "begin", SYN_ERROR,
-                              source_file_metadata);
+                              metadata);
     }
 
     if (error_happened)
@@ -497,298 +548,322 @@ void corpo_p(source_file_metadata_t *const source_file_metadata)
     }
 }
 
-void dc_loc(source_file_metadata_t *const source_file_metadata)
+void dc_loc(source_file_metadata_t *const metadata)
 {
     // lookahead
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "var"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "var"))
     {
-        dc_v(source_file_metadata);
-        mais_dcloc(source_file_metadata);
+        dc_v(metadata);
+        mais_dcloc(metadata);
     }
     // Ɛ
 }
 
-void mais_dcloc(source_file_metadata_t *const source_file_metadata)
+void mais_dcloc(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ";"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ";"))
     {
-        source_file_metadata->token->is_consumed = true;
-        dc_loc(source_file_metadata);
+        metadata->token->is_consumed = true;
+        dc_loc(metadata);
     }
     // Ɛ
 }
 
-void comandos(source_file_metadata_t *const source_file_metadata)
+void comandos(source_file_metadata_t *const metadata)
 {
-    comando(source_file_metadata);
-    mais_comandos(source_file_metadata);
+    comando(metadata);
+    mais_comandos(metadata);
 }
 
-void comando(source_file_metadata_t *const source_file_metadata)
+void comando(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "read"))
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "read"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, "("))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, "("))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
 
-            variaveis(source_file_metadata);
+            variaveis(metadata);
 
-            get_next_token(source_file_metadata->file, source_file_metadata->token,
-                           source_file_metadata->args->stop_on_error);
-            if (source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, ")"))
+            exception_t possible_error = assert_types(metadata->st);
+            if (possible_error != EMPTY_EXCEPTION)
             {
-                source_file_metadata->token->is_consumed = true;
+                throw_semantic_error(possible_error, metadata);
+            }
+
+            get_next_token(metadata->file, metadata->token,
+                           metadata->args->stop_on_error);
+            if (metadata->token->class == SYMBOL &&
+                string_equals_literal(metadata->token->value, ")"))
+            {
+                metadata->token->is_consumed = true;
+
+                analysis_queue_destroy(&metadata->st->analysis_queue);
+
                 return;
             }
             else
             {
                 error_happened = true;
-                source_file_metadata->tip = "Did you miss a \")\" in the read command?";
-                throw_syntactic_error("Invalid read command", ")", SYN_ERROR, source_file_metadata);
+                metadata->tip = "Did you miss a \")\" in the read command?";
+                throw_syntactic_error("Invalid read command", ")", SYN_ERROR, metadata);
             }
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \"(\" in the read command?";
-            throw_syntactic_error("Invalid read command", "(", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \"(\" in the read command?";
+            throw_syntactic_error("Invalid read command", "(", SYN_ERROR, metadata);
         }
     }
-    else if (source_file_metadata->token->class == KEYWORD &&
-             string_equals_literal(source_file_metadata->token->value, "write"))
+    else if (metadata->token->class == KEYWORD &&
+             string_equals_literal(metadata->token->value, "write"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, "("))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, "("))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
 
-            variaveis(source_file_metadata);
+            variaveis(metadata);
 
-            get_next_token(source_file_metadata->file, source_file_metadata->token,
-                           source_file_metadata->args->stop_on_error);
-            if (source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, ")"))
+            exception_t possible_error = assert_types(metadata->st);
+            if (possible_error != EMPTY_EXCEPTION)
             {
-                source_file_metadata->token->is_consumed = true;
+                throw_semantic_error(possible_error, metadata);
+            }
+
+            get_next_token(metadata->file, metadata->token,
+                           metadata->args->stop_on_error);
+            if (metadata->token->class == SYMBOL &&
+                string_equals_literal(metadata->token->value, ")"))
+            {
+                metadata->token->is_consumed = true;
+
+                analysis_queue_destroy(&metadata->st->analysis_queue);
+
                 return;
             }
             else
             {
                 error_happened = true;
-                source_file_metadata->tip = "Did you miss a \")\" in the write command?";
-                throw_syntactic_error("Invalid write command", ")", SYN_ERROR, source_file_metadata);
+                metadata->tip = "Did you miss a \")\" in the write command?";
+                throw_syntactic_error("Invalid write command", ")", SYN_ERROR, metadata);
             }
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \"(\" in the write command?";
-            throw_syntactic_error("Invalid write command", "(", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \"(\" in the write command?";
+            throw_syntactic_error("Invalid write command", "(", SYN_ERROR, metadata);
         }
     }
-    else if (source_file_metadata->token->class == KEYWORD &&
-             string_equals_literal(source_file_metadata->token->value, "while"))
+    else if (metadata->token->class == KEYWORD &&
+             string_equals_literal(metadata->token->value, "while"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        condicao(source_file_metadata);
+        condicao(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == KEYWORD &&
-            string_equals_literal(source_file_metadata->token->value, "do"))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == KEYWORD &&
+            string_equals_literal(metadata->token->value, "do"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
 
-            comandos(source_file_metadata);
+            comandos(metadata);
 
-            get_next_token(source_file_metadata->file, source_file_metadata->token,
-                           source_file_metadata->args->stop_on_error);
-            if (source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, "$"))
+            get_next_token(metadata->file, metadata->token,
+                           metadata->args->stop_on_error);
+            if (metadata->token->class == SYMBOL &&
+                string_equals_literal(metadata->token->value, "$"))
             {
-                source_file_metadata->token->is_consumed = true;
+                metadata->token->is_consumed = true;
                 return;
             }
             else
             {
                 error_happened = true;
-                source_file_metadata->tip = "Did you miss a \"$\" in the while command?";
-                throw_syntactic_error("Invalid while command", "$", SYN_ERROR, source_file_metadata);
+                metadata->tip = "Did you miss a \"$\" in the while command?";
+                throw_syntactic_error("Invalid while command", "$", SYN_ERROR, metadata);
             }
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \"do\" in the while command?";
-            throw_syntactic_error("Invalid while command", "do", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \"do\" in the while command?";
+            throw_syntactic_error("Invalid while command", "do", SYN_ERROR, metadata);
         }
     }
-    else if (source_file_metadata->token->class == KEYWORD &&
-             string_equals_literal(source_file_metadata->token->value, "if"))
+    else if (metadata->token->class == KEYWORD &&
+             string_equals_literal(metadata->token->value, "if"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        condicao(source_file_metadata);
+        condicao(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == KEYWORD &&
-            string_equals_literal(source_file_metadata->token->value, "then"))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == KEYWORD &&
+            string_equals_literal(metadata->token->value, "then"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
 
-            comandos(source_file_metadata);
+            comandos(metadata);
 
-            pfalsa(source_file_metadata);
+            pfalsa(metadata);
 
-            get_next_token(source_file_metadata->file, source_file_metadata->token,
-                           source_file_metadata->args->stop_on_error);
-            if (source_file_metadata->token->class == SYMBOL &&
-                string_equals_literal(source_file_metadata->token->value, "$"))
+            get_next_token(metadata->file, metadata->token,
+                           metadata->args->stop_on_error);
+            if (metadata->token->class == SYMBOL &&
+                string_equals_literal(metadata->token->value, "$"))
             {
-                source_file_metadata->token->is_consumed = true;
+                metadata->token->is_consumed = true;
 
             }
             else
             {
                 error_happened = true;
-                source_file_metadata->tip = "Did you miss a \"$\" in the if command?";
-                throw_syntactic_error("Invalid if command", "$", SYN_ERROR, source_file_metadata);
+                metadata->tip = "Did you miss a \"$\" in the if command?";
+                throw_syntactic_error("Invalid if command", "$", SYN_ERROR, metadata);
             }
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \"then\" in the if command?";
-            throw_syntactic_error("Invalid if command", "then", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \"then\" in the if command?";
+            throw_syntactic_error("Invalid if command", "then", SYN_ERROR, metadata);
         }
     }
-    else if (source_file_metadata->token->class == IDENTIFIER)
+    else if (metadata->token->class == IDENTIFIER)
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        restoIdent(source_file_metadata);
+        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
+
+        restoIdent(metadata);
     }
     else
     {
         error_happened = true;
         throw_syntactic_error("Invalid command", "read | write | while | if | A valid identifier, e.g. \"square_root\"",
-                              SYN_ERROR, source_file_metadata);
+                              SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(comando) = {end}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               !(source_file_metadata->token->class == KEYWORD &&
-                string_equals_literal(source_file_metadata->token->value, "end")))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               !(metadata->token->class == KEYWORD &&
+                 string_equals_literal(metadata->token->value, "end")))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void condicao(source_file_metadata_t *const source_file_metadata)
+void condicao(source_file_metadata_t *const metadata)
 {
-    expressao(source_file_metadata);
-    relacao(source_file_metadata);
-    expressao(source_file_metadata);
+    expressao(metadata);
+    relacao(metadata);
+    expressao(metadata);
 }
 
-void expressao(source_file_metadata_t *const source_file_metadata)
+void expressao(source_file_metadata_t *const metadata)
 {
-    termo(source_file_metadata);
-    outros_termos(source_file_metadata);
+    termo(metadata);
+    outros_termos(metadata);
 }
 
-void termo(source_file_metadata_t *const source_file_metadata)
+void termo(source_file_metadata_t *const metadata)
 {
-    op_un(source_file_metadata);
-    fator(source_file_metadata);
-    mais_fatores(source_file_metadata);
+    op_un(metadata);
+    fator(metadata);
+    mais_fatores(metadata);
 }
 
-void op_un(source_file_metadata_t *const source_file_metadata)
+void op_un(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, "+"))
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "+"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
-    else if (source_file_metadata->token->class == SYMBOL &&
-             string_equals_literal(source_file_metadata->token->value, "-"))
+    else if (metadata->token->class == SYMBOL &&
+             string_equals_literal(metadata->token->value, "-"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
     // Ɛ
 }
 
-void fator(source_file_metadata_t *const source_file_metadata)
+void fator(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == IDENTIFIER)
+    if (metadata->token->class == IDENTIFIER)
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
+
+        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
+
         return;
     }
-    else if (source_file_metadata->token->class == INTEGER)
+    else if (metadata->token->class == INTEGER)
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
-    else if (source_file_metadata->token->class == REAL)
+    else if (metadata->token->class == REAL)
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
-    else if (source_file_metadata->token->class == SYMBOL &&
-             string_equals_literal(source_file_metadata->token->value, "("))
+    else if (metadata->token->class == SYMBOL &&
+             string_equals_literal(metadata->token->value, "("))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        expressao(source_file_metadata);
+        expressao(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, ")"))
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, ")"))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \")\" in the factor?";
-            throw_syntactic_error("Invalid factor", ")", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \")\" in the factor?";
+            throw_syntactic_error("Invalid factor", ")", SYN_ERROR, metadata);
         }
     }
     else
@@ -799,254 +874,292 @@ void fator(source_file_metadata_t *const source_file_metadata)
                               "A valid integer, e.g. 123 |\n\t"
                               "A valid real, e.g. 3,14 |\n\t"
                               "A valid expression between parenthesis, e.g. (2+3)", SYN_ERROR,
-                              source_file_metadata);
+                              metadata);
     }
 
     if (error_happened)
     {
         // NEXT(fator) = {$, ;, <, <=, <>, =, >, >=, do, else, end, then}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "$")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, ";")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "<")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "<=")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "<>")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "=")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, ">")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, ">=")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "do")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "else")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "end")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "then"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "$")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ";")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "<")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "<=")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "<>")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "=")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ">")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ">=")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "do")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "else")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "end")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "then"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void mais_fatores(source_file_metadata_t *const source_file_metadata)
+void mais_fatores(source_file_metadata_t *const metadata)
 {
     // lookahead
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL &&
-        (string_equals_literal(source_file_metadata->token->value, "*") ||
-         string_equals_literal(source_file_metadata->token->value, "/")
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL &&
+        (string_equals_literal(metadata->token->value, "*") ||
+         string_equals_literal(metadata->token->value, "/")
         ))
     {
-        op_mul(source_file_metadata);
-        fator(source_file_metadata);
-        mais_fatores(source_file_metadata);
+        op_mul(metadata);
+        fator(metadata);
+        mais_fatores(metadata);
     }
     // Ɛ
 }
 
-void op_mul(source_file_metadata_t *const source_file_metadata)
+void op_mul(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, "*"))
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "*"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
-    else if (source_file_metadata->token->class == SYMBOL &&
-             string_equals_literal(source_file_metadata->token->value, "/"))
+    else if (metadata->token->class == SYMBOL &&
+             string_equals_literal(metadata->token->value, "/"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
+
+        st_toggle_flag(metadata->st, ST_DIV_OP);
+
         return;
     }
     else
     {
         error_happened = true;
-        throw_syntactic_error("Invalid operator", "* | /", SYN_ERROR, source_file_metadata);
+        throw_syntactic_error("Invalid operator", "* | /", SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(op_mul) = {(, ident, numero_int, numero_real)}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "(")) &&
-                source_file_metadata->token->class != IDENTIFIER &&
-                source_file_metadata->token->class != INTEGER &&
-                source_file_metadata->token->class != REAL))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "(")) &&
+                metadata->token->class != IDENTIFIER &&
+                metadata->token->class != INTEGER &&
+                metadata->token->class != REAL))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
 
-void outros_termos(source_file_metadata_t *const source_file_metadata)
+void outros_termos(source_file_metadata_t *const metadata)
 {
     // lookahead
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL &&
-        (string_equals_literal(source_file_metadata->token->value, "+") ||
-         string_equals_literal(source_file_metadata->token->value, "-")
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL &&
+        (string_equals_literal(metadata->token->value, "+") ||
+         string_equals_literal(metadata->token->value, "-")
         ))
     {
-        op_ad(source_file_metadata);
-        termo(source_file_metadata);
-        outros_termos(source_file_metadata);
+        op_ad(metadata);
+        termo(metadata);
+        outros_termos(metadata);
     }
     // Ɛ
 }
 
-void op_ad(source_file_metadata_t *const source_file_metadata)
+void op_ad(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, "+"))
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "+"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
-    else if (source_file_metadata->token->class == SYMBOL &&
-             string_equals_literal(source_file_metadata->token->value, "-"))
+    else if (metadata->token->class == SYMBOL &&
+             string_equals_literal(metadata->token->value, "-"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
     else
     {
         error_happened = true;
-        throw_syntactic_error("Invalid operator", "+ | -", SYN_ERROR, source_file_metadata);
+        throw_syntactic_error("Invalid operator", "+ | -", SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(op_ad) = {(, ident, numero_int, numero_real)}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "(")) &&
-                source_file_metadata->token->class != IDENTIFIER &&
-                source_file_metadata->token->class != INTEGER &&
-                source_file_metadata->token->class != REAL))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "(")) &&
+                metadata->token->class != IDENTIFIER &&
+                metadata->token->class != INTEGER &&
+                metadata->token->class != REAL))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void relacao(source_file_metadata_t *const source_file_metadata)
+void relacao(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL &&
-        (string_equals_literal(source_file_metadata->token->value, "=") ||
-         string_equals_literal(source_file_metadata->token->value, "<>") ||
-         string_equals_literal(source_file_metadata->token->value, ">=") ||
-         string_equals_literal(source_file_metadata->token->value, "<=") ||
-         string_equals_literal(source_file_metadata->token->value, ">") ||
-         string_equals_literal(source_file_metadata->token->value, "<")))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL &&
+        (string_equals_literal(metadata->token->value, "=") ||
+         string_equals_literal(metadata->token->value, "<>") ||
+         string_equals_literal(metadata->token->value, ">=") ||
+         string_equals_literal(metadata->token->value, "<=") ||
+         string_equals_literal(metadata->token->value, ">") ||
+         string_equals_literal(metadata->token->value, "<")))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
         return;
     }
     else
     {
         error_happened = true;
         throw_syntactic_error("Invalid relational operator", "= | <> | >= | <= | > | <", SYN_ERROR,
-                              source_file_metadata);
+                              metadata);
     }
 
     if (error_happened)
     {
         // NEXT(relacao) = {(, +, -, ident, numero_int, numero_real)}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "(")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "+")) &&
-                !(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "-")) &&
-                source_file_metadata->token->class != IDENTIFIER &&
-                source_file_metadata->token->class != INTEGER &&
-                source_file_metadata->token->class != REAL))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "(")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "+")) &&
+                !(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "-")) &&
+                metadata->token->class != IDENTIFIER &&
+                metadata->token->class != INTEGER &&
+                metadata->token->class != REAL))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void pfalsa(source_file_metadata_t *const source_file_metadata)
+void pfalsa(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
-    if (source_file_metadata->token->class == KEYWORD &&
-        string_equals_literal(source_file_metadata->token->value, "else"))
+    if (metadata->token->class == KEYWORD &&
+        string_equals_literal(metadata->token->value, "else"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        comandos(source_file_metadata);
+        comandos(metadata);
     }
     // Ɛ
 }
 
-void restoIdent(source_file_metadata_t *const source_file_metadata)
+void restoIdent(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
+    token_t *old_token = token_copy(metadata->token), *aux_token = NULL;
 
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ":="))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ":="))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        expressao(source_file_metadata);
+        expressao(metadata);
+
+        exception_t possible_error = assert_types(metadata->st);
+        if(possible_error != EMPTY_EXCEPTION)
+        {
+            aux_token = metadata->token;
+            metadata->token = old_token;
+            throw_semantic_error(ST_ID_NOT_FOUND, metadata);
+            metadata->token = aux_token;
+        }
+
+        return;
     }
+    else
+    {
+        if (!analysis_queue_set_scope(metadata->st))
+        {
+            aux_token = metadata->token;
+            metadata->token = old_token;
+            throw_semantic_error(ST_ID_NOT_FOUND, metadata);
+            metadata->token = aux_token;
+        }
 
-    lista_arg(source_file_metadata);
+        token_destroy(old_token);
+
+        lista_arg(metadata);
+
+        st_return_global_scope(metadata->st);
+    }
 }
 
-void lista_arg(source_file_metadata_t *const source_file_metadata)
+void lista_arg(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, "("))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "("))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        argumentos(source_file_metadata);
+        argumentos(metadata);
 
-        get_next_token(source_file_metadata->file, source_file_metadata->token,
-                       source_file_metadata->args->stop_on_error);
-        if (source_file_metadata->token->class == SYMBOL &&
-            string_equals_literal(source_file_metadata->token->value, ")"))
+        if (!analysis_queue_assert_params(metadata->st))
         {
-            source_file_metadata->token->is_consumed = true;
+            throw_semantic_error(SEM_INVALID_ARGUMENTS, metadata);
+        }
+
+        get_next_token(metadata->file, metadata->token,
+                       metadata->args->stop_on_error);
+        if (metadata->token->class == SYMBOL &&
+            string_equals_literal(metadata->token->value, ")"))
+        {
+            metadata->token->is_consumed = true;
+
+            analysis_queue_destroy(&metadata->st->analysis_queue);
+
             return;
         }
         else
         {
             error_happened = true;
-            source_file_metadata->tip = "Did you miss a \")\" at a procedure call?";
-            throw_syntactic_error("Invalid symbol in procedure call", ")", SYN_ERROR, source_file_metadata);
+            metadata->tip = "Did you miss a \")\" at a procedure call?";
+            throw_syntactic_error("Invalid symbol in procedure call", ")", SYN_ERROR, metadata);
         }
     }
     // Ɛ
@@ -1055,76 +1168,104 @@ void lista_arg(source_file_metadata_t *const source_file_metadata)
     {
         // NEXT(lista_arg) = {$, else, end, then}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-               (!(source_file_metadata->token->class == SYMBOL &&
-                  string_equals_literal(source_file_metadata->token->value, "$")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "else")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "end")) &&
-                !(source_file_metadata->token->class == KEYWORD &&
-                  string_equals_literal(source_file_metadata->token->value, "then"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, "$")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "else")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "end")) &&
+                !(metadata->token->class == KEYWORD &&
+                  string_equals_literal(metadata->token->value, "then"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void argumentos(source_file_metadata_t *const source_file_metadata)
+void argumentos(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == IDENTIFIER)
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == IDENTIFIER)
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        mais_ident(source_file_metadata);
+        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
+
+        mais_ident(metadata);
+        return;
     }
     else
     {
         error_happened = true;
-        source_file_metadata->tip = "Did you miss an argument at a procedure call?";
-        throw_syntactic_error("Invalid arguments in procedure call", ")", SYN_ERROR, source_file_metadata);
+        metadata->tip = "Did you miss an argument at a procedure call?";
+        throw_syntactic_error("Invalid arguments in procedure call", ")", SYN_ERROR, metadata);
     }
 
     if (error_happened)
     {
         // NEXT(argumentos) = {)}
 
-        while (get_next_token(source_file_metadata->file, source_file_metadata->token,
-                              source_file_metadata->args->stop_on_error) &&
-                              (!(source_file_metadata->token->class == SYMBOL &&
-                              string_equals_literal(source_file_metadata->token->value, ")"))))
+        while (get_next_token(metadata->file, metadata->token,
+                              metadata->args->stop_on_error) &&
+               (!(metadata->token->class == SYMBOL &&
+                  string_equals_literal(metadata->token->value, ")"))))
         {
-            source_file_metadata->token->is_consumed = true;
+            metadata->token->is_consumed = true;
         }
     }
 }
 
-void mais_ident(source_file_metadata_t *const source_file_metadata)
+void mais_ident(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ";"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ";"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        argumentos(source_file_metadata);
+        argumentos(metadata);
     }
     // Ɛ
 }
 
-void mais_comandos(source_file_metadata_t *const source_file_metadata)
+void mais_comandos(source_file_metadata_t *const metadata)
 {
-    get_next_token(source_file_metadata->file, source_file_metadata->token, source_file_metadata->args->stop_on_error);
-    if (source_file_metadata->token->class == SYMBOL && string_equals_literal(source_file_metadata->token->value, ";"))
+    get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
+    if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, ";"))
     {
-        source_file_metadata->token->is_consumed = true;
+        metadata->token->is_consumed = true;
 
-        comandos(source_file_metadata);
+        comandos(metadata);
     }
     // Ɛ
+}
+
+void throw_semantic_error(exception_t const exception, source_file_metadata_t *const metadata)
+{
+    // MAYBE: Cache the actual line before enter a semantic / st method to assure that the line on the error is the first
+    for (error_list_t *aux = metadata->st->error_list, *next = NULL; aux; aux = next)
+    {
+        next = aux->next;
+
+        ++metadata->num_errors;
+        printf("%zu: ", metadata->token->start_position.line + 1);
+        log_with_color(RED, "SEMANTIC ERROR: ");
+        printf("%s", aux->error);
+
+        remove_elem_free_list((void *) aux->error, true);
+        remove_elem_free_list((void *) aux, true);
+
+        if (metadata->args->stop_on_error)
+        {
+            throw_exception(exception);
+        }
+
+    }
+
+    metadata->st->error_list = NULL;
 }
 
 void throw_syntactic_error(char const *const error_msg, char const *const expected_msg, exception_t exception,

@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../exceptions/exceptions_handler.h"
 #include "../logs/logs.h"
+#include "../exceptions/exceptions_handler.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
 
+// TODO: REMOVE
 bool str_equals(char const *s1, char const *s2);
 
 // Handle non flag arguments
@@ -120,12 +122,7 @@ cli_args_t *parse_args(int argc, char *argv[])
         throw_exception(INVALID_CLI);
     }
 
-    cli_args_t *new_cli = calloc(1, sizeof(cli_args_t));
-
-    if (new_cli == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    cli_args_t *new_cli = s_mem_alloc(1, sizeof(cli_args_t));
 
     cli_args_init(new_cli);
 

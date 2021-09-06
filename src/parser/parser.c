@@ -3,7 +3,6 @@
 //
 
 #include "parser.h"
-#include <stdlib.h>
 #include "../lexical/lexical_token.h"
 #include "../lexical/lexical_analyzer.h"
 #include "../syntactic/syntactic_analyzer.h"
@@ -29,7 +28,7 @@ void parse_source_file(file_t  *const source_file, cli_args_t const *const args)
     }
     else
     {
-        source_file_metadata_t  * const metadata = source_file_metadata_init(token, source_file, args);
+        source_file_metadata_t  * metadata = source_file_metadata_init(token, source_file, (cli_args_t  *)args);
         start_syntactic_analysis(metadata);
         if (metadata->num_errors == 0)
         {
@@ -41,8 +40,11 @@ void parse_source_file(file_t  *const source_file, cli_args_t const *const args)
             printf("%zu", metadata->num_errors);
             log_with_color_nl(RED, " errors found.");
         }
-        source_file_metadata_destroy(metadata);
-    }
 
-    token_destroy(token);
+        if (args->logs)
+        {
+            st_log(metadata->st);
+        }
+
+    }
 }

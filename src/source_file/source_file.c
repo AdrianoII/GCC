@@ -4,25 +4,20 @@
 
 #include "source_file.h"
 #include <stdlib.h>
-#include <string.h>
-#include "../exceptions/exceptions_handler.h"
+#include "../s_mem_alloc/s_mem_alloc.h"
 
-source_file_metadata_t * source_file_metadata_init(token_t *token, file_t *file, cli_args_t const *args)
+source_file_metadata_t * source_file_metadata_init(token_t *token, file_t *file, cli_args_t *args)
 {
-    source_file_metadata_t temp_metada = {token, file, args, 0, NULL};
-    source_file_metadata_t * const metadata = calloc(1, sizeof(source_file_metadata_t*const));
+    // TODO: FIX CONST HERE
+    source_file_metadata_t * metadata = s_mem_alloc(1, sizeof(source_file_metadata_t));
 
-    if (metadata == NULL)
-    {
-        throw_exception(ALLOCATION_FAILED);
-    }
+    metadata->token = token;
+    metadata->file = file;
+    metadata->args = args;
+    metadata->num_errors = 0;
+    metadata->args = args;
+    metadata->tip = NULL;
+    metadata->st = st_init();
 
-    // Hacky way to init const members
-    memcpy(metadata, &temp_metada, sizeof(source_file_metadata_t));
     return metadata;
-}
-
-void source_file_metadata_destroy(source_file_metadata_t * const metadata)
-{
-    free(metadata);
 }
