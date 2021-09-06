@@ -79,4 +79,4 @@ tests : debug
 .PHONY : clean
 clean:
 	-rm out/GCC* out/*.o tests/outputs/*.txt out/lexical_tests
-	-rm tests/outputs/*.txt
+	-rm tests/outputs/*/*.txt
