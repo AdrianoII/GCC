@@ -1,0 +1,1 @@
+[0;32mSource file is syntactic correct![0m

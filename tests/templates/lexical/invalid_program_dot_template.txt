@@ -1,0 +1,6 @@
+2:1~2:2: [0;31mSYNTACTIC ERROR: [0mInvalid syntax: Missing . at the end of source file
+Expected:
+	.
+Got:
+	$
+[0;32mSource file is syntactic correct![0m

@@ -1,0 +1,14 @@
+program validDeclaration
+var i1 : integer;
+procedure a(i3 : integer)
+begin
+	i3 := 2
+end;
+var i2 : real;
+procedure ab
+begin
+	i1 := 3
+end
+begin
+	a(i1)
+end.

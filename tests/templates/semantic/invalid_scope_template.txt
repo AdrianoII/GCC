@@ -1,0 +1,2 @@
+10: [0;31mSEMANTIC ERROR: [0mVariable "i3" does not exists on the current scope!
+[0;31mInvalid source file: [0m1[0;31m errors found.[0m

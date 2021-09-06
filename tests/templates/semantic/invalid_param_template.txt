@@ -1,0 +1,7 @@
+22: [0;31mSEMANTIC ERROR: [0mIncompatible numbers of arguments: Expected 0 got 1!
+23: [0;31mSEMANTIC ERROR: [0mArgument "r1" of real type doesn't have a compatible type with the parameter "i1" of integer type!
+24: [0;31mSEMANTIC ERROR: [0mArgument "r1" of real type doesn't have a compatible type with the parameter "i2" of integer type!
+25: [0;31mSEMANTIC ERROR: [0mArgument "i1" of integer type doesn't have a compatible type with the parameter "i2" of real type!
+25: [0;31mSEMANTIC ERROR: [0mIncompatible numbers of arguments: Expected 2 got 3!
+26: [0;31mSEMANTIC ERROR: [0mIncompatible numbers of arguments: Expected 2 got 1!
+[0;31mInvalid source file: [0m6[0;31m errors found.[0m

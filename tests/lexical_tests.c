@@ -6,9 +6,9 @@
 #include "../src/exceptions/exceptions_handler.h"
 #include "../src/logs/logs.h"
 #define GCC_PATH "out/GCC"
-#define TESTS_PATH "tests/inputs/"
-#define OUTPUTS_PATH "tests/outputs/"
-#define TEMPLATES_PATH "tests/templates/"
+#define TESTS_PATH "tests/inputs/lexical/"
+#define OUTPUTS_PATH "tests/outputs/lexical/"
+#define TEMPLATES_PATH "tests/templates/lexical/"
 
 void test_valid_symbols(void);
 

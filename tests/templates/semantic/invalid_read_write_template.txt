@@ -1,0 +1,7 @@
+6: [0;31mSEMANTIC ERROR: [0mIncompatible types between i1(integer) and r2(real)
+7: [0;31mSEMANTIC ERROR: [0mIncompatible types between i2(integer) and r2(real)
+11: [0;31mSEMANTIC ERROR: [0mIncompatible types between r1(real) and i2(integer)
+12: [0;31mSEMANTIC ERROR: [0mIncompatible types between r1(real) and i1(integer)
+15: [0;31mSEMANTIC ERROR: [0mIncompatible types between i1(integer) and r1(real)
+16: [0;31mSEMANTIC ERROR: [0mIncompatible types between i1(integer) and r2(real)
+[0;31mInvalid source file: [0m6[0;31m errors found.[0m

@@ -1,0 +1,18 @@
+program validDivision
+var i1
+,
+
+r,
+i2
+:
+
+integer;
+var r1, r2: real;
+procedure tstDivIII
+var r: integer
+begin
+	r :=  i1 / i2
+end;
+begin
+    r := i2 / i2
+end.

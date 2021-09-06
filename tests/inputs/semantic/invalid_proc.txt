@@ -1,0 +1,5 @@
+program invalidProc
+var i1 : integer;
+begin
+	a(i1)
+end.

@@ -1,0 +1,3 @@
+7: [0;31mSEMANTIC ERROR: [0mVariable "i1" has already been declared on this scope!
+8: [0;31mSEMANTIC ERROR: [0mProcedure "a" has already been declared!
+[0;31mInvalid source file: [0m2[0;31m errors found.[0m

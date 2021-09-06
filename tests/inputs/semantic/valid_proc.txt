@@ -1,0 +1,9 @@
+program validProc
+var i1 : integer;
+procedure a(i1 : integer)
+begin
+	i1 := i1 *2
+end
+begin
+	a(i1)
+end.

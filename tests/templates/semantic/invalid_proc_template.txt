@@ -1,0 +1,3 @@
+4: [0;31mSEMANTIC ERROR: [0mProcedure "a" has not been declared!
+4: [0;31mSEMANTIC ERROR: [0mIncompatible numbers of arguments: Expected 0 got 1!
+[0;31mInvalid source file: [0m2[0;31m errors found.[0m

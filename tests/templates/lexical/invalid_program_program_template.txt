@@ -1,0 +1,6 @@
+1:1~1:1: [0;31mSYNTACTIC ERROR: [0mInvalid syntax: Invalid key word
+Expected:
+	program
+Got:
+	
+[0;32mSource file is syntactic correct![0m

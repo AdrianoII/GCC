@@ -1,0 +1,27 @@
+program invalidParam
+var i1 : integer;
+var r1 : real;
+procedure p1
+begin
+	i1 := i1 + 1
+end;
+procedure p2(i1 : integer)
+begin
+	i1 := i1 + 1
+end;
+procedure p3(i1,i2 : integer)
+begin
+	i1 := i1 + 1
+end;
+procedure p4(i1 : integer; i2 : real)
+begin
+	i1 := i1 + 1
+end;
+
+begin
+	p1(i1);
+	p2(r1);
+	p3(i1;r1);
+	p4(i1;i1;i1);
+	p4(i1)
+end.

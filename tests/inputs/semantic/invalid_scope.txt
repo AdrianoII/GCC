@@ -1,0 +1,15 @@
+program invalidScope
+var i1 : integer;
+procedure a
+var i3 : integer
+begin
+	i3 := 2
+end;
+procedure ab
+begin
+	i3 := 3
+end
+begin
+	a;
+	ab
+end.

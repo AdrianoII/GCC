@@ -1,0 +1,11 @@
+13: [0;31mSEMANTIC ERROR: [0mDivision result should be stored in an integers, not in the "r"(real)!
+18: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r1"(real)!
+23: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r2"(real)!
+28: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r1"(real)!
+28: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r2"(real)!
+33: [0;31mSEMANTIC ERROR: [0mDivision result should be stored in an integers, not in the "r"(real)!
+33: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r1"(real)!
+33: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r2"(real)!
+40: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r1"(real)!
+40: [0;31mSEMANTIC ERROR: [0mDivision operands should be integers, not "r2"(real)!
+[0;31mInvalid source file: [0m10[0;31m errors found.[0m

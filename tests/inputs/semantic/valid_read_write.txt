@@ -1,0 +1,17 @@
+program validReadWrite
+var i1, i2 : integer;
+var r1, r2: real;
+procedure io1
+begin
+	read(i1);
+	write(i1)
+end;
+procedure io2
+begin
+	read(r1,r2);
+	write(r1,r2)
+end
+begin
+	read(i1,i2,i1);
+	write(i1,i1,i1)
+end.

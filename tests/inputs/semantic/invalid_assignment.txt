@@ -1,0 +1,7 @@
+program invalidAssignment
+var i1,i2: integer;
+var r1,r2: real;
+begin
+	i1 := i1 + i2 * r1;
+	r1 := r1 + r1 *r1 *r2 *i2
+end.

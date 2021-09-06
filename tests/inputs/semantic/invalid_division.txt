@@ -1,0 +1,46 @@
+program invalidDivision
+var i1
+,
+r,
+i2
+:
+
+integer;
+var r1, r2: real;
+procedure tstDivRII
+var r: real
+begin
+	r :=  i1 / i2
+end;
+procedure tstDivIRI
+var r: integer
+begin
+	r :=  r1 / i2
+end;
+procedure tstDivIIR
+var r: integer
+begin
+	r :=  i1 / r2
+end;
+procedure tstDivIRR
+var r: integer
+begin
+	r :=  r1 / r2
+end;
+procedure tstDivRRR
+var r: real
+begin
+	r :=  r1 / r2
+end
+begin
+	i1 := 4;
+	i2 := 2;
+	r1 := 9.0;
+	r2 := 3.0;
+	r := r1 / r2;
+	tstDivRII;
+	tstDivIRI;
+	tstDivIIR;
+	tstDivIRR;
+	tstDivRRR
+end.
