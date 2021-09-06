@@ -1,4 +1,4 @@
-# Syntactic Graphs
+# 	Syntactic Graphs
 
 * \<programa\>
 
@@ -10,27 +10,27 @@
 
 * \<dc\>
 
-  ![\<dc\>](./dc.png)
+  ![\<dc\>](./dc.svg)
+* \<dc_v\>
+
+  ![\<dc_v](./dc_v.svg)
+  
+* \<variaveis\>
+
+  ![\<variaveis\>](./variaveis.svg)
+
 
 * \<mais_dc\>
 
-  ![\<mais_dc\>](./mais_dc.png)
-
-* \<dc_v\>
-
-  ![\<dc_v](./dc_v.png)
+  ![\<mais_dc\>](./mais_dc.svg)
 
 * \<tipo_var\>
 
   ![\<tipo_var\>](./tipo_var.svg)
 
-* \<variaveis\>
-
-  ![\<variaveis\>](./variaveis.svg)
-
 * \<mais_var\>
 
-  ![\<mais_var\>](./mais_var.png)
+  ![\<mais_var\>](./mais_var.svg)
 
 * \<dc_p\>
 
@@ -42,23 +42,23 @@
 
 * \<lista_par\>
 
-  ![\<lista_par\>](./lista_par.png)
+  ![\<lista_par\>](./lista_par.svg)
 
 * \<mais_par\>
 
-  ![\<mais_par\>](./mais_par.png)
+  ![\<mais_par\>](./mais_par.svg)
 
 * \<corpo_p\>
 
-  ![\<corpo_p\>](./corpo_p.png)
+  ![\<corpo_p\>](./corpo_p.svg)
 
 * \<dc_loc\>
 
-  ![\<dc_loc\>](./dc_loc.png)
+  ![\<dc_loc\>](./dc_loc.svg)
 
 * \<mais_dcloc\>
 
-![\<mais_dcloc\>](./mais_dcloc.png)
+![\<mais_dcloc\>](./mais_dcloc.svg)
 
 * \<lista_arg\>
 
@@ -70,19 +70,19 @@
 
 * \<mais_ident\>
 
-![\<mais_ident\>](./mais_ident.png)
+![\<mais_ident\>](./mais_ident.svg)
 
 * \<pfalsa\>
 
-![\<pfalsa\>](./pfalsa.png)
+![\<pfalsa\>](./pfalsa.svg)
 
 * \<comandos\>
 
-![\<comandos\>](./comandos.png)
+![\<comandos\>](./comandos.svg)
 
 * \<mais_comandos\>
 
-![\<mais_comandos\>](./mais_comandos.png)
+![\<mais_comandos\>](./mais_comandos.svg)
 
 * \<comando\>
 
@@ -90,27 +90,27 @@
 
 * \<restoIdent\>
 
-![\<restoIdent\>](./restoIdent.png)
+![\<restoIdent\>](./restoIdent.svg)
 
 * \<condicao\>
 
-![\<condicao\>](./condicao.png)
+![\<condicao\>](./condicao.svg)
 
 * \<relacao\>
 
-![\<relacao\>](./relacao.png)
+![\<relacao\>](./relacao.svg)
 
 * \<expressao\>
 
-![\<expressao\>](./expressao.png)
+![\<expressao\>](./expressao.svg)
 
 * \<op_un\>
 
-![\<op_un\>](./op_un.png)
+![\<op_un\>](./op_un.svg)
 
 * \<outros_termos\>
 
-![\<outros_termos\>](./outros_termos.png)
+![\<outros_termos\>](./outros_termos.svg)
 
 * \<op_ad\>
 
@@ -118,15 +118,15 @@
 
 * \<termo\>
 
-![\<termo\>](./termo.png)
+![\<termo\>](./termo.svg)
 
 * \<mais_fatores\>
 
-![\<mais_fatores\>](./mais_fatores.png)
+![\<mais_fatores\>](./mais_fatores.svg)
 
 * \<op_mul\>
 
-![\<op_mul\>](./op_mul.png)
+![\<op_mul\>](./op_mul.svg)
 
 * \<fator\>
 
