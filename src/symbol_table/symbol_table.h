@@ -22,6 +22,7 @@
 
 typedef enum {
     ST_DIV_OP = 1,
+    CG_MINUS = 2,
 } st_flags_t;
 
 typedef enum {

@@ -52,6 +52,7 @@ void operator_stack_push(operator_stack_t *os, char op)
 
 void expression_push_var(code_list_t *cl, st_t *st)
 {
+    analysis_queue_fetch_vars_entries(st);
     analysis_queue_t *aux = st->analysis_queue;
     int_real_t e;
     for (; aux->next; aux = aux->next)
@@ -63,12 +64,12 @@ void expression_push_var(code_list_t *cl, st_t *st)
 
 void expression_push_int(code_list_t *cl, int_real_t n)
 {
-    gen_code(cl, CRVL, n, INTEGER_DATA_TYPE);
+    gen_code(cl, CRCT, n, INTEGER_DATA_TYPE);
 }
 
 void expression_push_real(code_list_t *cl, int_real_t n)
 {
-    gen_code(cl, CRVL, n, REAL_DATA_TYPE);
+    gen_code(cl, CRCT, n, REAL_DATA_TYPE);
 }
 
 void expression_push_op(code_list_t *cl, operator_stack_t *operator_stack, char op)
@@ -91,7 +92,7 @@ void expression_push_op(code_list_t *cl, operator_stack_t *operator_stack, char 
     }
     else
     {
-        if(operator_stack->top)
+        if(operator_stack->top && operator_stack->top->operator != '(' && op != '(')
         {
             bool new_is_md = op == '*' || op == '/';
             bool top_is_md = operator_stack->top->operator == '*' || operator_stack->top->operator == '/';

@@ -82,6 +82,9 @@ void programa(source_file_metadata_t *const metadata)
                 string_equals_literal(metadata->token->value, "."))
             {
                 metadata->token->is_consumed = true;
+
+                gen_code(metadata->cl, PARA, e, INVALID_DATA_TYPE);
+
                 return;
             }
             else
@@ -797,8 +800,32 @@ void comando(source_file_metadata_t *const metadata)
 void condicao(source_file_metadata_t *const metadata)
 {
     expressao(metadata);
+
+    exception_t possible_error = assert_types(metadata->st);
+    if(possible_error != EMPTY_EXCEPTION)
+    {
+        throw_semantic_error(possible_error, metadata);
+    } else // if success
+    {
+        expression_finish(metadata->cl, metadata->op_stack);
+    }
+
+    analysis_queue_destroy(&metadata->st->analysis_queue);
+
     relacao(metadata);
+
     expressao(metadata);
+
+    possible_error = assert_types(metadata->st);
+    if(possible_error != EMPTY_EXCEPTION)
+    {
+        throw_semantic_error(possible_error, metadata);
+    } else // if success
+    {
+        expression_finish(metadata->cl, metadata->op_stack);
+    }
+
+    analysis_queue_destroy(&metadata->st->analysis_queue);
 }
 
 void expressao(source_file_metadata_t *const metadata)
@@ -827,6 +854,9 @@ void op_un(source_file_metadata_t *const metadata)
              string_equals_literal(metadata->token->value, "-"))
     {
         metadata->token->is_consumed = true;
+
+        st_toggle_flag(metadata->st, CG_MINUS);
+
         return;
     }
     // Ɛ
@@ -836,6 +866,13 @@ void fator(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
 
+    bool has_unitary_minus = CHECK_FLAG(metadata->st, CG_MINUS);
+    // Reset it to the possible inside expression use it
+    if (has_unitary_minus)
+    {
+        st_toggle_flag(metadata->st, CG_MINUS);
+    }
+
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
     if (metadata->token->class == IDENTIFIER)
@@ -844,22 +881,38 @@ void fator(source_file_metadata_t *const metadata)
 
         analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
 
-        return;
+        expression_push_var(metadata->cl, metadata->st);
     }
     else if (metadata->token->class == INTEGER)
     {
         metadata->token->is_consumed = true;
-        return;
+
+        int_real_t e;
+        if(!sscanf(metadata->token->value->buffer, "%zu", &e.integer))
+        {
+            throw_exception(LEX_INVALID_INT);
+        }
+
+        expression_push_int(metadata->cl, e);
     }
     else if (metadata->token->class == REAL)
     {
         metadata->token->is_consumed = true;
-        return;
+
+        int_real_t e;
+        if(!sscanf(metadata->token->value->buffer, "%lf", &e.real))
+        {
+            throw_exception(LEX_INVALID_INT);
+        }
+
+        expression_push_real(metadata->cl, e);
     }
     else if (metadata->token->class == SYMBOL &&
              string_equals_literal(metadata->token->value, "("))
     {
         metadata->token->is_consumed = true;
+
+        expression_push_op(metadata->cl, metadata->op_stack, '(');
 
         expressao(metadata);
 
@@ -869,7 +922,8 @@ void fator(source_file_metadata_t *const metadata)
             string_equals_literal(metadata->token->value, ")"))
         {
             metadata->token->is_consumed = true;
-            return;
+
+            expression_push_op(metadata->cl, metadata->op_stack, ')');
         }
         else
         {
@@ -887,6 +941,13 @@ void fator(source_file_metadata_t *const metadata)
                               "A valid real, e.g. 3,14 |\n\t"
                               "A valid expression between parenthesis, e.g. (2+3)", SYN_ERROR,
                               metadata);
+    }
+
+    if (has_unitary_minus)
+    {
+        int_real_t e;
+        e.integer = 0;
+        gen_code(metadata->cl, INVE, e, INVALID_DATA_TYPE);
     }
 
     if (error_happened)
@@ -950,6 +1011,9 @@ void op_mul(source_file_metadata_t *const metadata)
     if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "*"))
     {
         metadata->token->is_consumed = true;
+
+        expression_push_op(metadata->cl, metadata->op_stack, '*');
+
         return;
     }
     else if (metadata->token->class == SYMBOL &&
@@ -958,6 +1022,8 @@ void op_mul(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         st_toggle_flag(metadata->st, ST_DIV_OP);
+
+        expression_push_op(metadata->cl, metadata->op_stack, '/');
 
         return;
     }
@@ -1010,12 +1076,18 @@ void op_ad(source_file_metadata_t *const metadata)
     if (metadata->token->class == SYMBOL && string_equals_literal(metadata->token->value, "+"))
     {
         metadata->token->is_consumed = true;
+
+        expression_push_op(metadata->cl, metadata->op_stack, '+');
+
         return;
     }
     else if (metadata->token->class == SYMBOL &&
              string_equals_literal(metadata->token->value, "-"))
     {
         metadata->token->is_consumed = true;
+
+        expression_push_op(metadata->cl, metadata->op_stack, '-');
+
         return;
     }
     else
