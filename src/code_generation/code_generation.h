@@ -47,10 +47,12 @@ typedef struct code_s {
     data_type_t type;
     int_real_t elem;
     struct code_s *next;
+    struct code_s *prev;
 } code_t;
 
 typedef struct code_list_s {
     code_t *head;
+    code_t *last;
     size_t count;
 } code_list_t;
 
@@ -73,5 +75,17 @@ void gen_write_code(code_list_t *cl, st_t *st);
 
 // Add the ARMZ for the first element in the analysis queue
 void gen_assignment_code(code_list_t *cl, st_t *st);
+
+// Add an incomplete DSVF and return a reference to complete it later
+code_t* gen_template_cond_jump_code(code_list_t *cl);
+
+// Complete the template conditional jump to jump to the last instruction
+void gen_if_code(code_list_t *cl, code_t *template);
+
+// Add an incomplete DSVI to the else NT handle
+code_t* gen_template_uncond_jump_code(code_list_t *cl);
+
+// Complete the template unconditional jump to jump to the last instruction
+void gen_else_code(code_list_t *cl, code_t *template);
 
 #endif //GCC_CODE_GENERATION_H

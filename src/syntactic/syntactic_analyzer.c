@@ -42,7 +42,7 @@ void op_mul(source_file_metadata_t *metadata);
 void outros_termos(source_file_metadata_t *metadata);
 void op_ad(source_file_metadata_t *metadata);
 void relacao(source_file_metadata_t *metadata);
-void pfalsa(source_file_metadata_t *metadata);
+void pfalsa(source_file_metadata_t *metadata, code_t *template);
 void restoIdent(source_file_metadata_t *metadata);
 void lista_arg(source_file_metadata_t *metadata);
 void argumentos(source_file_metadata_t *metadata);
@@ -735,6 +735,8 @@ void comando(source_file_metadata_t *const metadata)
 
         condicao(metadata);
 
+        code_t *template = gen_template_cond_jump_code(metadata->cl);
+
         get_next_token(metadata->file, metadata->token,
                        metadata->args->stop_on_error);
         if (metadata->token->class == KEYWORD &&
@@ -744,7 +746,7 @@ void comando(source_file_metadata_t *const metadata)
 
             comandos(metadata);
 
-            pfalsa(metadata);
+            pfalsa(metadata, template);
 
             get_next_token(metadata->file, metadata->token,
                            metadata->args->stop_on_error);
@@ -1157,7 +1159,7 @@ void relacao(source_file_metadata_t *const metadata)
     }
 }
 
-void pfalsa(source_file_metadata_t *const metadata)
+void pfalsa(source_file_metadata_t *const metadata, code_t *template)
 {
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
 
@@ -1166,9 +1168,19 @@ void pfalsa(source_file_metadata_t *const metadata)
     {
         metadata->token->is_consumed = true;
 
+        code_t *else_jump = gen_template_uncond_jump_code(metadata->cl);
+        gen_if_code(metadata->cl, template);
+
         comandos(metadata);
+
+        gen_else_code(metadata->cl, else_jump);
     }
-    // Ɛ
+    else{
+        // Ɛ
+        gen_if_code(metadata->cl, template);
+
+    }
+
 }
 
 void restoIdent(source_file_metadata_t *const metadata)

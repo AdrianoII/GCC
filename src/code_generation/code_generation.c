@@ -90,9 +90,11 @@ void cs_add_code(code_list_t * const cl, code_t * const c)
     {
         code_t *aux = cl->head;
         for(; aux->next; aux = aux->next);
+        c->prev = aux;
         aux->next = c;
     }
 
+    cl->last = c;
     ++cl->count;
 }
 
@@ -180,4 +182,36 @@ void gen_assignment_code(code_list_t *cl, st_t *st)
     int_real_t e;
     e.integer = ((var_st_elem_t *) st->analysis_queue->elem)->mem_pos;
     gen_code(cl, ARMZ, e, INTEGER_DATA_TYPE);
+}
+
+code_t* gen_template_cond_jump_code(code_list_t *cl)
+{
+    int_real_t e;
+    e.integer = 0;
+    gen_code(cl, DSVF, e, INTEGER_DATA_TYPE);
+
+    return cl->last;
+}
+
+void gen_if_code(code_list_t *cl, code_t *template)
+{
+    int_real_t e;
+    e.integer = cl->count;
+    template->elem =e;
+}
+
+code_t* gen_template_uncond_jump_code(code_list_t *cl)
+{
+    int_real_t e;
+    e.integer = 0;
+    gen_code(cl, DSVI, e, INTEGER_DATA_TYPE);
+
+    return cl->last;
+}
+
+void gen_else_code(code_list_t *cl, code_t *template)
+{
+    int_real_t e;
+    e.integer = cl->count;
+    template->elem =e;
 }
