@@ -41,7 +41,7 @@ void mais_fatores(source_file_metadata_t *metadata);
 void op_mul(source_file_metadata_t *metadata);
 void outros_termos(source_file_metadata_t *metadata);
 void op_ad(source_file_metadata_t *metadata);
-void relacao(source_file_metadata_t *metadata);
+instruction_t relacao(source_file_metadata_t *metadata);
 void pfalsa(source_file_metadata_t *metadata, code_t *template);
 void restoIdent(source_file_metadata_t *metadata);
 void lista_arg(source_file_metadata_t *metadata);
@@ -611,7 +611,8 @@ void comando(source_file_metadata_t *const metadata)
             if (possible_error != EMPTY_EXCEPTION)
             {
                 throw_semantic_error(possible_error, metadata);
-            } else // if success
+            }
+            else // if success
             {
                 gen_read_code(metadata->cl, metadata->st);
             }
@@ -660,7 +661,8 @@ void comando(source_file_metadata_t *const metadata)
             if (possible_error != EMPTY_EXCEPTION)
             {
                 throw_semantic_error(possible_error, metadata);
-            } else // if success
+            }
+            else // if success
             {
                 gen_write_code(metadata->cl, metadata->st);
             }
@@ -695,7 +697,11 @@ void comando(source_file_metadata_t *const metadata)
     {
         metadata->token->is_consumed = true;
 
+        size_t return_to_exp = metadata->cl->count;
+
         condicao(metadata);
+
+        code_t *template = gen_template_cond_jump_code(metadata->cl);
 
         get_next_token(metadata->file, metadata->token,
                        metadata->args->stop_on_error);
@@ -705,6 +711,8 @@ void comando(source_file_metadata_t *const metadata)
             metadata->token->is_consumed = true;
 
             comandos(metadata);
+
+            gen_while_code(metadata->cl, template, return_to_exp);
 
             get_next_token(metadata->file, metadata->token,
                            metadata->args->stop_on_error);
@@ -804,27 +812,30 @@ void condicao(source_file_metadata_t *const metadata)
     expressao(metadata);
 
     exception_t possible_error = assert_types(metadata->st);
-    if(possible_error != EMPTY_EXCEPTION)
+    if (possible_error != EMPTY_EXCEPTION)
     {
         throw_semantic_error(possible_error, metadata);
-    } else // if success
+    }
+    else // if success
     {
         expression_finish(metadata->cl, metadata->op_stack);
     }
 
     analysis_queue_destroy(&metadata->st->analysis_queue);
 
-    relacao(metadata);
+    instruction_t rel_op = relacao(metadata);
 
     expressao(metadata);
 
     possible_error = assert_types(metadata->st);
-    if(possible_error != EMPTY_EXCEPTION)
+    if (possible_error != EMPTY_EXCEPTION)
     {
         throw_semantic_error(possible_error, metadata);
-    } else // if success
+    }
+    else if(rel_op != INVALID_INST) // if success
     {
         expression_finish(metadata->cl, metadata->op_stack);
+        gen_rel_code(metadata->cl, rel_op);
     }
 
     analysis_queue_destroy(&metadata->st->analysis_queue);
@@ -890,7 +901,7 @@ void fator(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         int_real_t e;
-        if(!sscanf(metadata->token->value->buffer, "%zu", &e.integer))
+        if (!sscanf(metadata->token->value->buffer, "%zu", &e.integer))
         {
             throw_exception(LEX_INVALID_INT);
         }
@@ -902,7 +913,7 @@ void fator(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         int_real_t e;
-        if(!sscanf(metadata->token->value->buffer, "%lf", &e.real))
+        if (!sscanf(metadata->token->value->buffer, "%lf", &e.real))
         {
             throw_exception(LEX_INVALID_INT);
         }
@@ -1115,21 +1126,46 @@ void op_ad(source_file_metadata_t *const metadata)
     }
 }
 
-void relacao(source_file_metadata_t *const metadata)
+instruction_t relacao(source_file_metadata_t *const metadata)
 {
     bool error_happened = false;
+    instruction_t rel_op = INVALID_INST;
 
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
-    if (metadata->token->class == SYMBOL &&
-        (string_equals_literal(metadata->token->value, "=") ||
-         string_equals_literal(metadata->token->value, "<>") ||
-         string_equals_literal(metadata->token->value, ">=") ||
-         string_equals_literal(metadata->token->value, "<=") ||
-         string_equals_literal(metadata->token->value, ">") ||
-         string_equals_literal(metadata->token->value, "<")))
+    if (metadata->token->class == SYMBOL)
     {
+        if (string_equals_literal(metadata->token->value, "="))
+        {
+            rel_op = CPIG;
+        }
+        else if (string_equals_literal(metadata->token->value, "<>"))
+        {
+            rel_op = CDES;
+        }
+        else if (string_equals_literal(metadata->token->value, ">="))
+        {
+            rel_op = CMAI;
+        }
+        else if (string_equals_literal(metadata->token->value, "<="))
+        {
+            rel_op = CPMI;
+        }
+        else if (string_equals_literal(metadata->token->value, ">"))
+        {
+            rel_op = CPMA;
+        }
+        else if (string_equals_literal(metadata->token->value, "<"))
+        {
+            rel_op = CPME;
+        }
+        else
+        {
+            error_happened = true;
+            throw_syntactic_error("Invalid relational operator", "= | <> | >= | <= | > | <", SYN_ERROR,
+                                  metadata);
+        }
+
         metadata->token->is_consumed = true;
-        return;
     }
     else
     {
@@ -1157,6 +1193,8 @@ void relacao(source_file_metadata_t *const metadata)
             metadata->token->is_consumed = true;
         }
     }
+
+    return rel_op;
 }
 
 void pfalsa(source_file_metadata_t *const metadata, code_t *template)
@@ -1175,7 +1213,8 @@ void pfalsa(source_file_metadata_t *const metadata, code_t *template)
 
         gen_else_code(metadata->cl, else_jump);
     }
-    else{
+    else
+    {
         // Ɛ
         gen_if_code(metadata->cl, template);
 
@@ -1196,13 +1235,14 @@ void restoIdent(source_file_metadata_t *const metadata)
         expressao(metadata);
 
         exception_t possible_error = assert_types(metadata->st);
-        if(possible_error != EMPTY_EXCEPTION)
+        if (possible_error != EMPTY_EXCEPTION)
         {
             aux_token = metadata->token;
             metadata->token = old_token;
             throw_semantic_error(ST_ID_NOT_FOUND, metadata);
             metadata->token = aux_token;
-        }else // if success
+        }
+        else // if success
         {
             expression_finish(metadata->cl, metadata->op_stack);
             gen_assignment_code(metadata->cl, metadata->st);

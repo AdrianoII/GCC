@@ -10,6 +10,7 @@
 #include "../symbol_table/symbol_table.h"
 
 typedef enum {
+    INVALID_INST,
     CRCT, // load constant
     CRVL, // load value
     SOMA, // sum
@@ -87,5 +88,11 @@ code_t* gen_template_uncond_jump_code(code_list_t *cl);
 
 // Complete the template unconditional jump to jump to the last instruction
 void gen_else_code(code_list_t *cl, code_t *template);
+
+// Complete the while conditional jump and add the jump to repeat itself
+void gen_while_code(code_list_t *cl, code_t *template, size_t return_to_exp);
+
+// Add the relational instruction
+void gen_rel_code(code_list_t *cl, instruction_t op);
 
 #endif //GCC_CODE_GENERATION_H

@@ -7,10 +7,12 @@
 #include "../s_mem_alloc/s_mem_alloc.h"
 #include "../file_handler/file_handler.h"
 
-char* instruction_to_string(instruction_t const instruction)
+char *instruction_to_string(instruction_t const instruction)
 {
     switch (instruction)
     {
+        case INVALID_INST:
+            throw_exception(CG_INVALID_INSTRUCTION);
         case CRCT:
             return "CRCT";
         case CRVL:
@@ -26,7 +28,7 @@ char* instruction_to_string(instruction_t const instruction)
         case INVE:
             return "INVE";
         case CONJ:
-            return  "CONJ";
+            return "CONJ";
         case DISJ:
             return "DISJ";
         case NEGA:
@@ -74,13 +76,13 @@ char* instruction_to_string(instruction_t const instruction)
     }
 }
 
-code_list_t* cs_init()
+code_list_t *cs_init()
 {
     code_list_t *cs = s_mem_alloc(1, sizeof(code_list_t));
     return cs;
 }
 
-void cs_add_code(code_list_t * const cl, code_t * const c)
+void cs_add_code(code_list_t *const cl, code_t *const c)
 {
     if (cl->count == 0)
     {
@@ -89,7 +91,8 @@ void cs_add_code(code_list_t * const cl, code_t * const c)
     else
     {
         code_t *aux = cl->head;
-        for(; aux->next; aux = aux->next);
+        for (; aux->next; aux = aux->next)
+        {}
         c->prev = aux;
         aux->next = c;
     }
@@ -98,7 +101,7 @@ void cs_add_code(code_list_t * const cl, code_t * const c)
     ++cl->count;
 }
 
-void cs_write_codes(code_list_t const * const cl, char const * const path)
+void cs_write_codes(code_list_t const *const cl, char const *const path)
 {
     file_t *source_file = file_init(path, "w");
 
@@ -114,7 +117,8 @@ void cs_write_codes(code_list_t const * const cl, char const * const path)
         if (aux->type == INTEGER_DATA_TYPE)
         {
             fprintf(source_file->p_file, " %zu", aux->elem.integer);
-        } else if (aux->type == REAL_DATA_TYPE)
+        }
+        else if (aux->type == REAL_DATA_TYPE)
         {
             fprintf(source_file->p_file, " %lf", aux->elem.real);
         }
@@ -142,7 +146,7 @@ void gen_var_alloc_code(code_list_t *cl, st_t *st)
     int_real_t e;
     e.integer = 1;
 
-    for(analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
+    for (analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
     {
         gen_code(cl, ALME, e, INTEGER_DATA_TYPE);
     }
@@ -152,11 +156,11 @@ void gen_read_code(code_list_t *cl, st_t *st)
 {
     analysis_queue_fetch_vars_entries(st);
     int_real_t e;
-    for(analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
+    for (analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
     {
         e.integer = 0;
         gen_code(cl, LEIT, e, INVALID_DATA_TYPE);
-        e.integer = ((var_st_elem_t *)aux->elem)->mem_pos;
+        e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, ARMZ, e, INTEGER_DATA_TYPE);
     }
 }
@@ -167,9 +171,9 @@ void gen_write_code(code_list_t *cl, st_t *st)
     analysis_queue_fetch_vars_entries(st);
     int_real_t e;
 
-    for(analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
+    for (analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
     {
-        e.integer = ((var_st_elem_t *)aux->elem)->mem_pos;
+        e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, CRVL, e, INTEGER_DATA_TYPE);
         e.integer = 0;
         gen_code(cl, IMPR, e, INVALID_DATA_TYPE);
@@ -184,7 +188,7 @@ void gen_assignment_code(code_list_t *cl, st_t *st)
     gen_code(cl, ARMZ, e, INTEGER_DATA_TYPE);
 }
 
-code_t* gen_template_cond_jump_code(code_list_t *cl)
+code_t *gen_template_cond_jump_code(code_list_t *cl)
 {
     int_real_t e;
     e.integer = 0;
@@ -197,10 +201,10 @@ void gen_if_code(code_list_t *cl, code_t *template)
 {
     int_real_t e;
     e.integer = cl->count;
-    template->elem =e;
+    template->elem = e;
 }
 
-code_t* gen_template_uncond_jump_code(code_list_t *cl)
+code_t *gen_template_uncond_jump_code(code_list_t *cl)
 {
     int_real_t e;
     e.integer = 0;
@@ -213,5 +217,21 @@ void gen_else_code(code_list_t *cl, code_t *template)
 {
     int_real_t e;
     e.integer = cl->count;
-    template->elem =e;
+    template->elem = e;
+}
+
+void gen_while_code(code_list_t *cl, code_t *template, size_t return_to_exp)
+{
+    int_real_t e;
+    e.integer = return_to_exp;
+    gen_code(cl, DSVI, e, INTEGER_DATA_TYPE);
+    e.integer = cl->count;
+    template->elem = e;
+}
+
+void gen_rel_code(code_list_t *cl, instruction_t op)
+{
+    int_real_t e;
+    e.integer = 0;
+    gen_code(cl, op, e, INVALID_DATA_TYPE);
 }
