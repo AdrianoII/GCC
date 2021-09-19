@@ -31,7 +31,7 @@ out/GCC: out/parser.o
 out/parser.o: out/syntactic_analyzer.o
 	clang $(CFLAGS) -c src/parser/parser.c -o out/parser.o
 
-out/syntactic_analyzer.o: out/lexical_analyzer.o out/cli.o out/source_file.o #out/semantic_actions.o
+out/syntactic_analyzer.o: out/lexical_analyzer.o out/cli.o out/source_file.o out/code_gen.o #out/semantic_actions.o
 	clang $(CFLAGS) -c src/syntactic/syntactic_analyzer.c -o out/syntactic_analyzer.o
 
 out/source_file.o: out/st.o out/cli.o out/lexical_token.o
@@ -54,6 +54,12 @@ out/file_handler.o: out/string.o
 
 out/cli.o: out/s_mem_alloc.o
 	clang $(CFLAGS) -c src/cli/cli.c -o out/cli.o
+
+out/code_gen.o: out/exp.o
+	clang $(CFLAGS) -c src/code_generation/code_generation.c -o out/code_gen.o
+
+out/exp.o: out/string.o
+	clang $(CFLAGS) -c src/expression_handler/expression_handler.c -o out/exp.o
 
 out/string.o: out/s_mem_alloc.o
 	clang $(CFLAGS) -c src/string/string.c -o out/string.o

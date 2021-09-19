@@ -36,9 +36,9 @@ typedef enum {
     REAL_DATA_TYPE
 } data_type_t;
 
-typedef union {
-    int64_t integer;
-    long double real;
+typedef union int_real_u {
+    size_t integer;
+    double real;
 } int_real_t;
 
 typedef enum {
@@ -117,7 +117,7 @@ st_entry_t *st_entries_init(size_t table_size);
 
 proc_st_elem_t *proc_st_elem_init(string_t *id, size_t scope);
 
-var_st_elem_t *var_st_elem_init(string_t *id, size_t scope);
+var_st_elem_t *var_st_elem_init(string_t *id, size_t scope, size_t mem_pos);
 
 error_list_t *error_list_init();
 

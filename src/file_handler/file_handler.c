@@ -6,7 +6,7 @@
 #include "../exceptions/exceptions_handler.h"
 #include "../s_mem_alloc/s_mem_alloc.h"
 
-file_t *file_init(const char *file_path)
+file_t *file_init(char const  *file_path, char const * const mode)
 {
     file_t *new_file = s_mem_alloc(1, sizeof(file_t));
 
@@ -15,7 +15,7 @@ file_t *file_init(const char *file_path)
     new_file->col = 0;
     new_file->is_fresh_line = false;
 
-    new_file->p_file = s_fopen(new_file->path, "r");
+    new_file->p_file = s_fopen(new_file->path, mode);
 
     return new_file;
 }

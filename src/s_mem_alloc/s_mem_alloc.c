@@ -57,7 +57,14 @@ void remove_elem_free_list(void *e, bool free_memory)
 
             if (free_memory)
             {
-                free(aux_next->ptr);
+                if(aux_next->is_file)
+                {
+                    fclose(aux_next->ptr);
+                }
+                else
+                {
+                    free(aux_next->ptr);
+                }
             }
 
             free(aux_next);

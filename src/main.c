@@ -1,6 +1,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "s_mem_alloc/s_mem_alloc.h"
 #include "exceptions/exceptions_handler.h"
 #include "file_handler/file_handler.h"
@@ -26,17 +27,29 @@ void playground(void)
     string_log(stst, 0);
     string_realloc_to_n(stst, 3);
     string_log(stst, 0);
-   // Test things here
+    // Test things here
 }
 
 int main(int argc, char *argv[])
-//int main()
 {
 
-    if (atexit(free_mem) != 0)
+    if (sizeof(double) * CHAR_BIT != 64)
     {
-        printf("Fail to bind free_mem to atexit!");
-        throw_exception(FAILED_AT_EXIT);
+        throw_exception(INVALID_FLOAT_ARCH);
+    }
+
+    if (sizeof(size_t) * CHAR_BIT < 64)
+    {
+        throw_exception(INVALID_SIZE_T_ARCH);
+    }
+
+    {
+
+        if (atexit(free_mem) != 0)
+        {
+            printf("Fail to bind free_mem to atexit!");
+            throw_exception(FAILED_AT_EXIT);
+        }
     }
 
     cli_args_t *args = parse_args(argc, argv);
@@ -52,7 +65,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    file_t *source_file = file_init(args->source_file_path);
+    file_t *source_file = file_init(args->source_file_path, "r");
 
     parse_source_file(source_file, args);
 

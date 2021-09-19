@@ -56,6 +56,9 @@ void start_syntactic_analysis(source_file_metadata_t *const metadata)
 
 void programa(source_file_metadata_t *const metadata)
 {
+    int_real_t e;
+    e.integer = 0;
+    gen_code(metadata->cl, INPP, e, INVALID_DATA_TYPE);
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
     if (metadata->token->class == KEYWORD &&
         string_equals_literal(metadata->token->value, "program"))
@@ -211,6 +214,8 @@ void dc_v(source_file_metadata_t *const metadata)
         {
             metadata->token->is_consumed = true;
             tipo_var(metadata);
+
+            gen_var_alloc_code(metadata->cl, metadata->st);
 
             analysis_queue_destroy(&metadata->st->analysis_queue);
 
@@ -603,7 +608,13 @@ void comando(source_file_metadata_t *const metadata)
             if (possible_error != EMPTY_EXCEPTION)
             {
                 throw_semantic_error(possible_error, metadata);
+            } else // if success
+            {
+                gen_read_code(metadata->cl, metadata->st);
             }
+
+
+            analysis_queue_destroy(&metadata->st->analysis_queue);
 
             get_next_token(metadata->file, metadata->token,
                            metadata->args->stop_on_error);
@@ -611,8 +622,6 @@ void comando(source_file_metadata_t *const metadata)
                 string_equals_literal(metadata->token->value, ")"))
             {
                 metadata->token->is_consumed = true;
-
-                analysis_queue_destroy(&metadata->st->analysis_queue);
 
                 return;
             }
@@ -648,7 +657,12 @@ void comando(source_file_metadata_t *const metadata)
             if (possible_error != EMPTY_EXCEPTION)
             {
                 throw_semantic_error(possible_error, metadata);
+            } else // if success
+            {
+                gen_write_code(metadata->cl, metadata->st);
             }
+
+            analysis_queue_destroy(&metadata->st->analysis_queue);
 
             get_next_token(metadata->file, metadata->token,
                            metadata->args->stop_on_error);
@@ -656,8 +670,6 @@ void comando(source_file_metadata_t *const metadata)
                 string_equals_literal(metadata->token->value, ")"))
             {
                 metadata->token->is_consumed = true;
-
-                analysis_queue_destroy(&metadata->st->analysis_queue);
 
                 return;
             }
@@ -1106,7 +1118,13 @@ void restoIdent(source_file_metadata_t *const metadata)
             metadata->token = old_token;
             throw_semantic_error(ST_ID_NOT_FOUND, metadata);
             metadata->token = aux_token;
+        }else // if success
+        {
+            expression_finish(metadata->cl, metadata->op_stack);
+            gen_assignment_code(metadata->cl, metadata->st);
         }
+
+        analysis_queue_destroy(&metadata->st->analysis_queue);
 
         return;
     }

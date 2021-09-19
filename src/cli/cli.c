@@ -30,7 +30,7 @@ bool is_stop_at(char const *s);
 
 char const *stop_parsing_at_to_string(stop_parsing_at_t stop_at)
 {
-    const char *const stop_parsing_at_mapper[] = {
+    char const *const stop_parsing_at_mapper[] = {
             "NON_STOP",
             "STOP_AT_LEX",
             "STOP_AT_SYN",
@@ -88,17 +88,22 @@ void handle_stop_at(cli_args_t *const args, char const *const argument)
     }
 }
 
-bool is_help(const char *const s)
+bool is_help(char const *const s)
 {
     return str_equals(s, "-h") || str_equals(s, "--help");
 }
 
-bool is_playground(const char *const s)
+bool is_output_path(char const *const s)
+{
+    return str_equals(s, "-o") || str_equals(s, "--output_path");
+}
+
+bool is_playground(char const *const s)
 {
     return str_equals(s, "-p") || str_equals(s, "--playground");
 }
 
-bool is_logs(const char *const s)
+bool is_logs(char const *const s)
 {
     return str_equals(s, "-l") || str_equals(s, "--logs");
 }
@@ -108,7 +113,7 @@ bool is_stop_on_error(const char *s)
     return str_equals(s, "-se") || str_equals(s, "--stop-on-error");
 }
 
-bool is_stop_at(const char *const s)
+bool is_stop_at(char const *const s)
 {
     return str_equals(s, "-sa") || str_equals(s, "--stop-at");
 }
@@ -149,6 +154,16 @@ cli_args_t *parse_args(int argc, char *argv[])
         {
             handle_help();
         }
+        else if (is_output_path(argv[i]))
+        {
+            // Assert that p exists
+            if (i + 1 >= argc)
+            {
+                log_with_color_nl(RED, "Output path is missing!");
+                throw_exception(INVALID_CLI);
+            }
+            new_cli->output_path = argv[++i];
+        }
         else if (is_playground(argv[i]))
         {
             new_cli->playground = true;
@@ -175,6 +190,11 @@ cli_args_t *parse_args(int argc, char *argv[])
         }
     }
 
+    if (!new_cli->output_path)
+    {
+        new_cli->output_path = "a.lalg";
+    }
+
     return new_cli;
 }
 
@@ -197,7 +217,7 @@ void cli_args_log(cli_args_t const *const args)
     printf("}\n");
 }
 
-bool str_equals(const char *const s1, const char *const s2)
+bool str_equals(char const *const s1, char const *const s2)
 {
     return strcmp(s1, s2) == 0;
 }

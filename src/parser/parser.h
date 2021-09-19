@@ -9,6 +9,6 @@
 #include "stddef.h"
 #include "../file_handler/file_handler.h"
 
-void parse_source_file(file_t  *source_file, cli_args_t const *args);
+void parse_source_file(file_t *source_file, cli_args_t const *args);
 
 #endif //GCC_PARSER_H

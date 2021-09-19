@@ -54,12 +54,13 @@ proc_st_elem_t *proc_st_elem_init(string_t *const id, size_t const scope)
     return proc;
 }
 
-var_st_elem_t *var_st_elem_init(string_t *const id, size_t const scope)
+var_st_elem_t *var_st_elem_init(string_t *const id, size_t const scope, size_t const mem_pos)
 {
     var_st_elem_t *var = s_mem_alloc(1, sizeof(var_st_elem_t));
 
     var->id = id;
     var->scope = scope;
+    var->mem_pos =mem_pos;
 
     return var;
 }
@@ -259,15 +260,19 @@ bool analysis_queue_fetch_vars_entries(st_t const *const st)
 
     for (analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
     {
-        aux->elem = st_try_get_var(st, aux->id, aux->scope, NULL);
-        if (aux->elem == NULL)
+        if(aux->elem == NULL)
         {
-            st_append_error((st_t *) st, "Variable \"%s\" does not exists on the current scope!\n", aux->id->buffer);
-            all_vars_found = false;
-        }
-        else
-        {
-            aux->elem = ((st_entry_t *) aux->elem)->elem;
+            aux->elem = st_try_get_var(st, aux->id, aux->scope, NULL);
+            if (aux->elem == NULL)
+            {
+                st_append_error((st_t *) st, "Variable \"%s\" does not exists on the current scope!\n",
+                                aux->id->buffer);
+                all_vars_found = false;
+            }
+            else
+            {
+                aux->elem = ((st_entry_t *) aux->elem)->elem;
+            }
         }
     }
 
@@ -440,8 +445,6 @@ exception_t assert_types(st_t *const st)
         error = SEM_INCOMPATIBLE_TYPES;
     }
 
-    analysis_queue_destroy(&st->analysis_queue);
-
     return error;
 }
 
@@ -536,7 +539,7 @@ bool st_add_var(st_t *st, analysis_queue_t *target)
 
     string_t *id_copy = string_copy(target->id);
 
-    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope);
+    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope, st->actual_mem_pos++);
 
     target->elem = var;
 
@@ -640,7 +643,7 @@ void st_var_log(st_t *st)
             }
             else if (aux->data_type == REAL_DATA_TYPE)
             {
-                printf("|%*s|%*Lf\n", VAR_ST_CELL_SIZE, "real", VAR_ST_CELL_SIZE, aux->value.real);
+                printf("|%*s|%*lf\n", VAR_ST_CELL_SIZE, "real", VAR_ST_CELL_SIZE, aux->value.real);
             }
             else
             {

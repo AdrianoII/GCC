@@ -18,7 +18,7 @@ typedef struct
     bool is_fresh_line;
 } file_t;
 
-file_t *file_init(const char *file_path);
+file_t *file_init(const char *file_path, char const *mode);
 
 void file_destroy(file_t *file);
 

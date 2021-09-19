@@ -20,6 +20,7 @@ char const *stop_parsing_at_to_string(stop_parsing_at_t stop_at);
 
 typedef struct {
     const char *source_file_path;
+    const char *output_path;
     bool playground;
     bool logs;
     bool stop_on_error;
