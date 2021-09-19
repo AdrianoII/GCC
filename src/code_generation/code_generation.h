@@ -95,4 +95,15 @@ void gen_while_code(code_list_t *cl, code_t *template, size_t return_to_exp);
 // Add the relational instruction
 void gen_rel_code(code_list_t *cl, instruction_t op);
 
+// Complete the skip procedure jump and adds DESM and RTPR instructions
+void gen_proc_code(code_list_t *cl, st_t *st, code_t *template);
+
+// Add an incomplete PUSHER instruction
+code_t* gen_template_pusher_code(code_list_t *cl);
+
+// Complete the PUSHER instruction and add the CHPR
+void gen_proc_call_code(code_list_t *cl, st_t *st, code_t *pusher);
+
+// Add the PARAM instructions
+void gen_args_code(code_list_t *cl, st_t *st);
 #endif //GCC_CODE_GENERATION_H

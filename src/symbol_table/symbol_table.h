@@ -66,6 +66,9 @@ typedef struct var_st_elem_s {
 typedef struct proc_st_elem_s {
     string_t *id;
     size_t scope;
+    size_t num_params;
+    size_t num_locals;
+    size_t first_instruction;
     parameter_list_t *parameters;
     struct st_entry_s *hash_entry;
 } proc_st_elem_t;
@@ -98,6 +101,7 @@ typedef struct st_s {
     st_entry_t *entries;
     analysis_queue_t *analysis_queue;
     size_t actual_scope;
+    size_t prev_scope;
     size_t next_scope;
     proc_st_elem_t *actual_proc;
     proc_st_elem_t *global_proc;
@@ -213,6 +217,10 @@ bool st_add_vars(st_t *st);
 bool st_add_vars_type(st_t *st, data_type_t data_type);
 
 bool st_proc_add_params(st_t *st);
+
+void st_set_proc_first_instruction(st_t *st, size_t i);
+
+void st_update_proc_local_count(st_t *st);
 
 void st_log(st_t *st);
 

@@ -341,8 +341,8 @@ bool analysis_queue_set_scope(st_t *st)
     }
 
     proc_st_elem_t *proc = (proc_st_elem_t *) proc_entry->elem;
-
     st->actual_proc = proc;
+    st->prev_scope = st->actual_scope;
     st->actual_scope = proc_entry->scope;
 
     analysis_queue_destroy(&st->analysis_queue);
@@ -587,6 +587,7 @@ bool st_proc_add_params(st_t *st)
         parameter_list_t *new = s_mem_alloc(1, sizeof(parameter_list_t));
         var_st_elem_t *var = ((var_st_elem_t *) aux->elem);
         new->param = var;
+        ++st->actual_proc->num_params;
 
         if (st->actual_proc->parameters == NULL)
         {
@@ -605,6 +606,17 @@ bool st_proc_add_params(st_t *st)
 
     return no_erros_happened;
 }
+
+void st_set_proc_first_instruction(st_t *st, size_t i)
+{
+    st->actual_proc->first_instruction = i;
+}
+
+void st_update_proc_local_count(st_t *st)
+{
+    ++st->actual_proc->num_locals;
+}
+
 
 void st_log(st_t *st)
 {

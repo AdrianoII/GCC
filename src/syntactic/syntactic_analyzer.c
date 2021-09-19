@@ -372,9 +372,15 @@ void dc_p(source_file_metadata_t *const metadata)
                 throw_semantic_error(ST_PROC_ALREADY_DECLARED, metadata);
             }
 
+            code_t *skip_proc = gen_template_uncond_jump_code(metadata->cl);
+
+            st_set_proc_first_instruction(metadata->st, metadata->cl->count);
+
             parametros(metadata);
 
             corpo_p(metadata);
+
+            gen_proc_code(metadata->cl, metadata->st, skip_proc);
             return;
         }
         else
@@ -564,6 +570,9 @@ void dc_loc(source_file_metadata_t *const metadata)
         string_equals_literal(metadata->token->value, "var"))
     {
         dc_v(metadata);
+
+        st_update_proc_local_count(metadata->st);
+
         mais_dcloc(metadata);
     }
     // Ɛ
@@ -1262,9 +1271,13 @@ void restoIdent(source_file_metadata_t *const metadata)
             metadata->token = aux_token;
         }
 
+        code_t *pusher = gen_template_pusher_code(metadata->cl);
+
         token_destroy(old_token);
 
         lista_arg(metadata);
+
+        gen_proc_call_code(metadata->cl, metadata->st, pusher);
 
         st_return_global_scope(metadata->st);
     }
@@ -1286,6 +1299,10 @@ void lista_arg(source_file_metadata_t *const metadata)
             throw_semantic_error(SEM_INVALID_ARGUMENTS, metadata);
         }
 
+        gen_args_code(metadata->cl, metadata->st);
+
+        analysis_queue_destroy(&metadata->st->analysis_queue);
+
         get_next_token(metadata->file, metadata->token,
                        metadata->args->stop_on_error);
         if (metadata->token->class == SYMBOL &&
@@ -1293,7 +1310,6 @@ void lista_arg(source_file_metadata_t *const metadata)
         {
             metadata->token->is_consumed = true;
 
-            analysis_queue_destroy(&metadata->st->analysis_queue);
 
             return;
         }
@@ -1335,7 +1351,7 @@ void argumentos(source_file_metadata_t *const metadata)
     {
         metadata->token->is_consumed = true;
 
-        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
+        analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->prev_scope);
 
         mais_ident(metadata);
         return;

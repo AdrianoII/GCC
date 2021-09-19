@@ -235,3 +235,49 @@ void gen_rel_code(code_list_t *cl, instruction_t op)
     e.integer = 0;
     gen_code(cl, op, e, INVALID_DATA_TYPE);
 }
+
+void gen_proc_code(code_list_t *cl, st_t *st, code_t *template)
+{
+    int_real_t e;
+//    printf("ap %zu %zu %zu\n", st->actual_proc->scope, st->actual_proc->num_locals, st->actual_proc->num_params);
+    e.integer = st->actual_proc->num_params + st->actual_proc->num_locals;
+    if (e.integer > 0)
+    {
+        gen_code(cl, DESM, e, INTEGER_DATA_TYPE);
+    }
+    e.integer = 0;
+    gen_code(cl, RTPR, e, INVALID_DATA_TYPE);
+    template->elem.integer = cl->count;
+}
+
+code_t* gen_template_pusher_code(code_list_t *cl)
+{
+    int_real_t e;
+    e.integer = 0;
+    gen_code(cl, PUSHER, e, INTEGER_DATA_TYPE);
+    return cl->last;
+}
+
+void gen_proc_call_code(code_list_t *cl, st_t *st, code_t *pusher)
+{
+    int_real_t e;
+    e.integer = st->actual_proc->first_instruction;
+    gen_code(cl, CHPR, e, INTEGER_DATA_TYPE);
+    pusher->elem.integer = cl->count;
+}
+
+void gen_args_code(code_list_t *cl, st_t *st)
+{
+//    proc_st_elem_t *actual = st->actual_proc;
+//    st->actual_proc = st->global_proc;
+//    st->actual_scope = 0;
+    analysis_queue_fetch_vars_entries(st);
+//    st->actual_proc = actual;
+//    st->actual_scope = actual->scope;
+    int_real_t e;
+    for(analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
+    {
+        e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
+        gen_code(cl, PARAM, e, INTEGER_DATA_TYPE);
+    }
+}
