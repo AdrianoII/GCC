@@ -1,0 +1,36 @@
+program expressions
+var i1, i2	: integer;
+var r1, r2	: real
+begin
+
+    {Consts}
+    i1 := 1;
+    i2 := 2;
+    r1 := 3.14;
+    r2 := 0.5;
+
+    {Sums}
+    i1 := i1 + 1;
+    i2 := i1 + i2 + i1;
+    r2 := r2 + 0.25;
+    r2 := r2 + r1 + r2;
+
+    {Subs}
+    i1 := i1 - 1;
+    i2 := i1 - i2 - i1;
+    r2 := r2 - 0.25;
+    r2 := r2 - r1 - r2;
+
+    {Mults}
+    i1 := i1 * 2;
+    i2 := i1 * i2 * i1;
+    r2 := r2 * 1.5;
+    r2 := r2 * r1 * r2;
+
+    {Divs}
+    i1 := i1 / 2;
+    i2 := i1 / i2 / i1;
+
+    write(i1, i2);
+    write(r1, r2)
+end.
