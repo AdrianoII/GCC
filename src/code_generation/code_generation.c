@@ -101,7 +101,7 @@ void cs_add_code(code_list_t *const cl, code_t *const c)
     ++cl->count;
 }
 
-void cs_write_codes(code_list_t const *const cl, char const *const path)
+void cl_write_codes(const code_list_t *cl, const char *path)
 {
     file_t *source_file = file_init(path, "w");
 
@@ -240,7 +240,7 @@ void gen_proc_code(code_list_t *cl, st_t *st, code_t *template)
 {
     int_real_t e;
 //    printf("ap %zu %zu %zu\n", st->actual_proc->scope, st->actual_proc->num_locals, st->actual_proc->num_params);
-    e.integer = st->actual_proc->num_params + st->actual_proc->num_locals;
+    e.integer = st->actual_proc->num_vars;
     if (e.integer > 0)
     {
         gen_code(cl, DESM, e, INTEGER_DATA_TYPE);

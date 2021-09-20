@@ -329,15 +329,21 @@ bool analysis_queue_assert_types(st_t *const st)
     return compatible_types;
 }
 
-bool analysis_queue_set_scope(st_t *st)
+exception_t analysis_queue_set_scope(st_t *st)
 {
+    if (st->actual_scope  != GLOBAL_SCOPE)
+    {
+        st_append_error(st, "Procedure nesting is not allowed!\n");
+        analysis_queue_destroy(&st->analysis_queue);
+        return SEM_PROCEDURE_NESTING;
+    }
 
     st_entry_t *proc_entry = st_try_get(st, st->analysis_queue->id, 0, LOOKUP_PROC, NULL);
     if (proc_entry == NULL)
     {
         st_append_error(st, "Procedure \"%s\" has not been declared!\n", st->analysis_queue->id->buffer);
         analysis_queue_destroy(&st->analysis_queue);
-        return false;
+        return ST_ID_NOT_FOUND;
     }
 
     proc_st_elem_t *proc = (proc_st_elem_t *) proc_entry->elem;
@@ -347,7 +353,7 @@ bool analysis_queue_set_scope(st_t *st)
 
     analysis_queue_destroy(&st->analysis_queue);
 
-    return true;
+    return EMPTY_EXCEPTION;
 }
 
 bool analysis_queue_assert_params(st_t *st)
@@ -539,7 +545,7 @@ bool st_add_var(st_t *st, analysis_queue_t *target)
 
     string_t *id_copy = string_copy(target->id);
 
-    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope, st->actual_mem_pos++);
+    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope, st->actual_scope == GLOBAL_SCOPE ? st->actual_proc->num_vars++ : ((st->actual_proc->num_vars++) + 1));
 
     target->elem = var;
 
@@ -587,7 +593,7 @@ bool st_proc_add_params(st_t *st)
         parameter_list_t *new = s_mem_alloc(1, sizeof(parameter_list_t));
         var_st_elem_t *var = ((var_st_elem_t *) aux->elem);
         new->param = var;
-        ++st->actual_proc->num_params;
+        //++st->actual_proc->num_vars;
 
         if (st->actual_proc->parameters == NULL)
         {
@@ -614,7 +620,7 @@ void st_set_proc_first_instruction(st_t *st, size_t i)
 
 void st_update_proc_local_count(st_t *st)
 {
-    ++st->actual_proc->num_locals;
+    st->actual_proc->num_vars = st->actual_proc->num_vars;
 }
 
 
@@ -622,11 +628,11 @@ void st_log(st_t *st)
 {
     // TODO: Complete log with error msg and analisys queue
     printf("ST\n");
-    printf("%*s|%*s|%*s|%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "actual_scope", VAR_ST_CELL_SIZE, "next_scope",
+    printf("%*s|%*s|%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "actual_scope", VAR_ST_CELL_SIZE, "next_scope",
            VAR_ST_CELL_SIZE,
-           "count", VAR_ST_CELL_SIZE, "capacity", VAR_ST_CELL_SIZE, "mem_pos", VAR_ST_CELL_SIZE, "div_op");
-    printf("%*zu|%*zu|%*zu|%*zu|%*zu|%*s\n", VAR_ST_CELL_SIZE, st->actual_scope, VAR_ST_CELL_SIZE, st->next_scope,
-           VAR_ST_CELL_SIZE, st->count, VAR_ST_CELL_SIZE, st->capacity, VAR_ST_CELL_SIZE, st->actual_mem_pos,
+           "count", VAR_ST_CELL_SIZE, "capacity", VAR_ST_CELL_SIZE, "div_op");
+    printf("%*zu|%*zu|%*zu|%*zu|%*s\n", VAR_ST_CELL_SIZE, st->actual_scope, VAR_ST_CELL_SIZE, st->next_scope,
+           VAR_ST_CELL_SIZE, st->count, VAR_ST_CELL_SIZE, st->capacity,
            VAR_ST_CELL_SIZE, CHECK_FLAG(st, ST_DIV_OP) ? "true" : "false");
     printf("\n");
     st_var_log(st);
@@ -669,14 +675,14 @@ void st_proc_log(st_t *st)
 {
     // TODO: LOG PARAMETERS
     printf("PROC ST\n");
-    printf("%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "identifier", VAR_ST_CELL_SIZE, "scope", VAR_ST_CELL_SIZE, "parameters");
+    printf("%*s|%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "identifier", VAR_ST_CELL_SIZE, "scope", VAR_ST_CELL_SIZE, "num_vars", VAR_ST_CELL_SIZE, "parameters");
     for (size_t i = 0; i < st->capacity; i++)
     {
         if (st->entries[i].valid && st->entries[i].type == PROC_TYPE_ST_ENTRY)
         {
-            printf("%*.*s|%*zu|", VAR_ST_CELL_SIZE, VAR_ST_CELL_SIZE, st->entries[i].id->buffer, VAR_ST_CELL_SIZE,
-                   st->entries[i].scope);
             proc_st_elem_t *aux = st->entries[i].elem;
+            printf("%*.*s|%*zu|%*zu|", VAR_ST_CELL_SIZE, VAR_ST_CELL_SIZE, st->entries[i].id->buffer, VAR_ST_CELL_SIZE,
+                   st->entries[i].scope,VAR_ST_CELL_SIZE, aux->num_vars);
             if (aux && aux->parameters)
             {
                 parameter_list_t *aux2 = aux->parameters;

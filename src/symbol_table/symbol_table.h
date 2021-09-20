@@ -57,7 +57,7 @@ typedef struct parameter_list_s {
 typedef struct var_st_elem_s {
     string_t *id;
     size_t scope;
-    size_t mem_pos;
+    size_t mem_pos; // Relative pos if scope != GLOBAL_SCOPE
     data_type_t data_type;
     int_real_t value;
     struct st_entry_s *hash_entry;
@@ -66,8 +66,7 @@ typedef struct var_st_elem_s {
 typedef struct proc_st_elem_s {
     string_t *id;
     size_t scope;
-    size_t num_params;
-    size_t num_locals;
+    size_t num_vars;
     size_t first_instruction;
     parameter_list_t *parameters;
     struct st_entry_s *hash_entry;
@@ -105,7 +104,6 @@ typedef struct st_s {
     size_t next_scope;
     proc_st_elem_t *actual_proc;
     proc_st_elem_t *global_proc;
-    size_t actual_mem_pos;
     error_list_t *error_list;
     size_t flags;
 } st_t;
@@ -174,7 +172,7 @@ bool analysis_queue_fetch_vars_entries(st_t const *st);
 bool analysis_queue_assert_types(st_t *st);
 
 // Set the actual scope to the first element of the analysis queue (destructive read)
-bool analysis_queue_set_scope(st_t *st);
+exception_t analysis_queue_set_scope(st_t *st);
 
 bool analysis_queue_assert_params(st_t *st);
 // CAUTION: Used in diagrams

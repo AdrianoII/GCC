@@ -34,7 +34,7 @@ void parse_source_file(file_t  *const source_file, cli_args_t const *const args)
         {
             log_with_color_nl(GRN, "Source file is syntactic correct!");
 
-            cs_write_codes(metadata->cl, args->output_path);
+            cl_write_codes(metadata->cl, args->output_path);
         }
         else
         {

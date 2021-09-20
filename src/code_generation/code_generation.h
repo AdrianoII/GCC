@@ -61,7 +61,7 @@ code_list_t *cs_init();
 
 void cs_add_code(code_list_t *cl, code_t *c);
 
-void cs_write_codes(code_list_t const *cl, char const *path);
+void cl_write_codes(code_list_t const *cl, char const *path);
 
 void gen_code(code_list_t *cl, instruction_t instruction, int_real_t e, data_type_t type);
 

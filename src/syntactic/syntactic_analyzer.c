@@ -1263,11 +1263,12 @@ void restoIdent(source_file_metadata_t *const metadata)
     }
     else
     {
-        if (!analysis_queue_set_scope(metadata->st))
+        exception_t possible_error = analysis_queue_set_scope(metadata->st);
+        if (possible_error != EMPTY_EXCEPTION)
         {
             aux_token = metadata->token;
             metadata->token = old_token;
-            throw_semantic_error(ST_ID_NOT_FOUND, metadata);
+            throw_semantic_error(possible_error, metadata);
             metadata->token = aux_token;
         }
 
