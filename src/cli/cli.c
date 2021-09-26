@@ -118,6 +118,11 @@ bool is_stop_at(char const *const s)
     return str_equals(s, "-sa") || str_equals(s, "--stop-at");
 }
 
+bool is_interpreter_mode(char const *const s)
+{
+    return str_equals(s, "-i") || str_equals(s, "--interpreter");
+}
+
 cli_args_t *parse_args(int argc, char *argv[])
 {
     // Check if the user provide something
@@ -175,6 +180,10 @@ cli_args_t *parse_args(int argc, char *argv[])
         else if (is_stop_on_error(argv[i]))
         {
             new_cli->stop_on_error = true;
+        }
+        else if (is_interpreter_mode(argv[i]))
+        {
+            new_cli->interpreter_mode = true;
         }
         else if (is_stop_at(argv[i]))
         {

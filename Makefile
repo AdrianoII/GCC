@@ -25,8 +25,11 @@ debug: export ASAN_OPTIONS=strict_string_checks=1:detect_stack_use_after_return=
 #debug: CFLAGS += -g
 debug: out/GCC
 
-out/GCC: out/parser.o
+out/GCC: out/parser.o out/hipo.o
 	clang $(CFLAGS) $(ASANFLAGS) src/main.c out/*.o -o out/GCC
+
+out/hipo.o: out/code_gen.o
+	clang $(CFLAGS) -c src/hipo_interpreter/hipo_interpreter.c -o out/hipo.o
 
 out/parser.o: out/syntactic_analyzer.o
 	clang $(CFLAGS) -c src/parser/parser.c -o out/parser.o
@@ -58,7 +61,7 @@ out/cli.o: out/s_mem_alloc.o
 out/code_gen.o: out/exp.o
 	clang $(CFLAGS) -c src/code_generation/code_generation.c -o out/code_gen.o
 
-out/exp.o: out/string.o
+out/exp.o: out/string.o out/st.o
 	clang $(CFLAGS) -c src/expression_handler/expression_handler.c -o out/exp.o
 
 out/string.o: out/s_mem_alloc.o
@@ -84,5 +87,5 @@ tests : debug
 
 .PHONY : clean
 clean:
-	-rm out/GCC* out/*.o tests/outputs/*.txt out/lexical_tests
+	-rm out/GCC* out/*.o tests/outputs/*.txt out/lexical_tests out/hipo out/*_tests*
 	-rm tests/outputs/*/*.txt

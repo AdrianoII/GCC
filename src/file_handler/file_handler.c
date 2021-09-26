@@ -99,6 +99,23 @@ void file_rollback_byte(file_t *file)
 
 }
 
+size_t file_get_num_lines(file_t *file)
+{
+    size_t lines = 1;
+    int c = 0;
+    while(!feof(file->p_file))
+    {
+        c = fgetc(file->p_file);
+        if(c == '\n')
+        {
+            lines++;
+        }
+    }
+
+    rewind(file->p_file);
+
+    return lines;
+}
 
 // FIXME: dasdasds
 void file_log(file_t *file)

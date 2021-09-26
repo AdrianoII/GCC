@@ -57,6 +57,9 @@ typedef struct code_list_s {
     size_t count;
 } code_list_t;
 
+
+char *instruction_to_string(instruction_t instruction);
+
 code_list_t *cs_init();
 
 void cs_add_code(code_list_t *cl, code_t *c);

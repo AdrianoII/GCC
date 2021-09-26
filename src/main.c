@@ -7,7 +7,7 @@
 #include "file_handler/file_handler.h"
 #include "cli/cli.h"
 #include "parser/parser.h"
-
+#include "hipo_interpreter/hipo_interpreter.h"
 
 void playground(void)
 {
@@ -54,20 +54,28 @@ int main(int argc, char *argv[])
 
     cli_args_t *args = parse_args(argc, argv);
 
-    if (args->logs)
-    {
-        cli_args_log(args);
-    }
-
-    if (args->playground)
-    {
-        playground();
-        return 0;
-    }
-
     file_t *source_file = file_init(args->source_file_path, "r");
 
-    parse_source_file(source_file, args);
+    if (args->interpreter_mode)
+    {
+        try_interpret(source_file);
+    }
+    else
+    {
+
+        if (args->logs)
+        {
+            cli_args_log(args);
+        }
+
+        if (args->playground)
+        {
+            playground();
+            return 0;
+        }
+
+        parse_source_file(source_file, args);
+    }
 
     return 0;
 }
