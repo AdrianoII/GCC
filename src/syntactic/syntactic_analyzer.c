@@ -910,7 +910,7 @@ void fator(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         int_real_t e;
-        if (!sscanf(metadata->token->value->buffer, "%zu", &e.integer))
+        if (!sscanf(metadata->token->value->buffer, "%lld", &e.integer))
         {
             throw_exception(LEX_INVALID_INT);
         }

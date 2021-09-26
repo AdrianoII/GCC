@@ -178,7 +178,7 @@ void code_from_file(file_t *source, code_array_t *codes)
             }
             else
             {
-                sscanf(const_buffer, "%zu", &code->elem.integer);
+                sscanf(const_buffer, "%lld", &code->elem.integer);
             }
         }
             // No operand
@@ -196,7 +196,7 @@ void code_from_file(file_t *source, code_array_t *codes)
         else if ((inst == CRVL) || (inst == ARMZ) || (inst == DSVI) || (inst == DSVF) || (inst == ALME)
                  || (inst == PARAM) || (inst == PUSHER) || (inst == CHPR) || (inst == DESM))
         {
-            fscanf(source->p_file, "%zu", &code->elem.integer);
+            fscanf(source->p_file, "%lld", &code->elem.integer);
             code->type = INTEGER_DATA_TYPE;
         }
 
@@ -215,7 +215,7 @@ void print_codes(code_array_t *codes)
         }
         else if (codes->buffer[i].type == INTEGER_DATA_TYPE)
         {
-            printf("INTEGER %zu", codes->buffer[i].elem.integer);
+            printf("INTEGER %lld", codes->buffer[i].elem.integer);
         }
 
         printf("\n");
@@ -263,9 +263,10 @@ void interpret(code_array_t *codes)
     char const_buffer[65] = {'\0'};
     data_stack_elem_t aux;
     bool read_success = true;
-
+    bool inc_ip = true;
     while (true)
     {
+        inc_ip = true;
 
         switch (codes->buffer[ip].instruction)
         {
@@ -282,92 +283,337 @@ void interpret(code_array_t *codes)
                 break;
             case SOMA:
                 // TODO: ERROR
-                aux.type = stack.buffer[stack.top - 1].type;
+                aux.type = stack.buffer[stack.top - 2].type;
                 if (aux.type == INTEGER_DATA_TYPE)
                 {
                     aux.data.integer =
-                            stack.buffer[stack.top - 1].data.integer + stack.buffer[stack.top - 2].data.integer;
+                            stack.buffer[stack.top - 2].data.integer + stack.buffer[stack.top - 1].data.integer;
                 }
                 else
                 {
-                    aux.data.real = stack.buffer[stack.top - 1].data.real + stack.buffer[stack.top - 2].data.real;
+                    aux.data.real = stack.buffer[stack.top - 2].data.real + stack.buffer[stack.top - 1].data.real;
                 }
                 pop(&stack);
                 pop(&stack);
                 push(&stack, aux);
                 break;
             case SUBT:
-                aux.type = stack.buffer[stack.top - 1].type;
+                aux.type = stack.buffer[stack.top - 2].type;
                 if (aux.type == INTEGER_DATA_TYPE)
                 {
                     aux.data.integer =
-                            stack.buffer[stack.top - 1].data.integer - stack.buffer[stack.top - 2].data.integer;
+                            stack.buffer[stack.top - 2].data.integer - stack.buffer[stack.top - 1].data.integer;
                 }
                 else
                 {
-                    aux.data.real = stack.buffer[stack.top - 1].data.real - stack.buffer[stack.top - 2].data.real;
+                    aux.data.real = stack.buffer[stack.top - 2].data.real - stack.buffer[stack.top - 1].data.real;
                 }
                 pop(&stack);
                 pop(&stack);
                 push(&stack, aux);
                 break;
             case MULT:
-                aux.type = stack.buffer[stack.top - 1].type;
+                aux.type = stack.buffer[stack.top - 2].type;
                 if (aux.type == INTEGER_DATA_TYPE)
                 {
                     aux.data.integer =
-                            stack.buffer[stack.top - 1].data.integer * stack.buffer[stack.top - 2].data.integer;
+                            stack.buffer[stack.top - 2].data.integer * stack.buffer[stack.top - 1].data.integer;
                 }
                 else
                 {
-                    aux.data.real = stack.buffer[stack.top - 1].data.real * stack.buffer[stack.top - 2].data.real;
+                    aux.data.real = stack.buffer[stack.top - 2].data.real * stack.buffer[stack.top - 1].data.real;
                 }
                 pop(&stack);
                 pop(&stack);
                 push(&stack, aux);
                 break;
             case DIVI:
-                aux.type = stack.buffer[stack.top - 1].type;
+                aux.type = stack.buffer[stack.top - 2].type;
                 if (aux.type == INTEGER_DATA_TYPE)
                 {
                     aux.data.integer =
-                            stack.buffer[stack.top - 1].data.integer / stack.buffer[stack.top - 2].data.integer;
+                            stack.buffer[stack.top - 2].data.integer / stack.buffer[stack.top - 1].data.integer;
                 }
                 else
                 {
-                    aux.data.real = stack.buffer[stack.top - 1].data.real / stack.buffer[stack.top - 2].data.real;
+                    aux.data.real = stack.buffer[stack.top - 2].data.real / stack.buffer[stack.top - 1].data.real;
                 }
                 pop(&stack);
                 pop(&stack);
                 push(&stack, aux);
                 break;
             case INVE:
+                aux.type = stack.buffer[stack.top - 1].type;
+                if (aux.type == INTEGER_DATA_TYPE)
+                {
+                    aux.data.integer =
+                            stack.buffer[stack.top - 1].data.integer * -1;
+                }
+                else
+                {
+                    aux.data.real = stack.buffer[stack.top - 1].data.real * -1;
+                }
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CONJ:
+                aux.type = stack.buffer[stack.top - 2].type;
+                if (aux.type == INTEGER_DATA_TYPE)
+                {
+                    aux.data.integer =
+                            (bool) stack.buffer[stack.top - 2].data.integer &&
+                            (bool) stack.buffer[stack.top - 1].data.integer;
+                }
+                else
+                {
+                    aux.data.integer = (bool) stack.buffer[stack.top - 2].data.real &&
+                                       (bool) stack.buffer[stack.top - 1].data.real;
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case DISJ:
+                aux.type = stack.buffer[stack.top - 2].type;
+                if (aux.type == INTEGER_DATA_TYPE)
+                {
+                    aux.data.integer =
+                            (bool) stack.buffer[stack.top - 2].data.integer ||
+                            (bool) stack.buffer[stack.top - 1].data.integer;
+                }
+                else
+                {
+                    aux.data.integer = (bool) stack.buffer[stack.top - 2].data.real ||
+                                       (bool) stack.buffer[stack.top - 1].data.real;
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case NEGA:
+                aux.type = stack.buffer[stack.top - 1].type;
+                if (aux.type == INTEGER_DATA_TYPE)
+                {
+                    aux.data.integer =
+                            !((bool) stack.buffer[stack.top - 1].data.integer);
+                }
+                else
+                {
+                    aux.data.integer = !((bool) stack.buffer[stack.top - 1].data.real);
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CPME:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer < stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer < stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real < stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real < stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CPMA:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer > stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer > stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real > stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real > stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CPIG:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer == stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer == stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real == stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real == stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CDES:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer != stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer != stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real != stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real != stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CPMI:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer <= stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer <= stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real <= stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real <= stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case CMAI:
+                if (stack.buffer[stack.top - 2].type == INTEGER_DATA_TYPE)
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer >= stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.integer >= stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                else
+                {
+                    if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real >= stack.buffer[stack.top - 1].data.integer;
+                    }
+                    else
+                    {
+                        aux.data.integer =
+                                stack.buffer[stack.top - 2].data.real >= stack.buffer[stack.top - 1].data.real;
+                    }
+                }
+                aux.type = INTEGER_DATA_TYPE;
+                pop(&stack);
+                pop(&stack);
+                push(&stack, aux);
                 break;
             case ARMZ:
                 stack.buffer[codes->buffer[ip].elem.integer] = stack.buffer[stack.top - 1];
                 pop(&stack);
                 break;
             case DSVI:
+                ip = codes->buffer[ip].elem.integer;
+                inc_ip = false;
                 break;
             case DSVF:
+                if (!((bool) stack.buffer[stack.top - 1].data.integer))
+                {
+                    ip = codes->buffer[ip].elem.integer;
+                    inc_ip = false;
+                }
+                pop(&stack);
                 break;
             case LEIT:
                 read_success = false;
@@ -382,7 +628,7 @@ void interpret(code_array_t *codes)
                     else
                     {
                         aux.type = INTEGER_DATA_TYPE;
-                        read_success = sscanf(const_buffer, "%zu", &aux.data.integer);
+                        read_success = sscanf(const_buffer, "%lld", &aux.data.integer);
                     }
                 }
                 push(&stack, aux);
@@ -390,7 +636,7 @@ void interpret(code_array_t *codes)
             case IMPR:
                 if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
                 {
-                    printf("%zu\n", stack.buffer[stack.top - 1].data.integer);
+                    printf("%lld\n", stack.buffer[stack.top - 1].data.integer);
                 }
                 else if (stack.buffer[stack.top - 1].type == REAL_DATA_TYPE)
                 {
@@ -420,7 +666,10 @@ void interpret(code_array_t *codes)
             case RTPR:
                 break;
         }
-        ++ip;
+        if (inc_ip)
+        {
+            ++ip;
+        }
     }
 }
 

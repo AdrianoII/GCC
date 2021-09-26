@@ -116,7 +116,7 @@ void cl_write_codes(const code_list_t *cl, const char *path)
 
         if (aux->type == INTEGER_DATA_TYPE)
         {
-            fprintf(source_file->p_file, " %zu", aux->elem.integer);
+            fprintf(source_file->p_file, " %lld", aux->elem.integer);
         }
         else if (aux->type == REAL_DATA_TYPE)
         {

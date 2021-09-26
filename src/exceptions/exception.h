@@ -36,6 +36,7 @@ typedef enum
     CG_INVALID_INSTRUCTION,
     INVALID_FLOAT_ARCH,
     INVALID_SIZE_T_ARCH,
+    INVALID_INT_ARCH,
 } exception_t;
 
 #endif //GCC_EXCEPTION_H

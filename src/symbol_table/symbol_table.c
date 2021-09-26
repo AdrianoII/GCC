@@ -657,7 +657,7 @@ void st_var_log(st_t *st)
 
             if (aux->data_type == INTEGER_DATA_TYPE)
             {
-                printf("|%*s|%*"PRIu64"\n", VAR_ST_CELL_SIZE, "integer", VAR_ST_CELL_SIZE, aux->value.integer);
+                printf("|%*s|%*lld\n", VAR_ST_CELL_SIZE, "integer", VAR_ST_CELL_SIZE, aux->value.integer);
             }
             else if (aux->data_type == REAL_DATA_TYPE)
             {

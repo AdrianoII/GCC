@@ -38,7 +38,7 @@ typedef enum {
 } data_type_t;
 
 typedef union int_real_u {
-    size_t integer;
+    long long integer;
     double real;
 } int_real_t;
 

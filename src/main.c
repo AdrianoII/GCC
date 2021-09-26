@@ -32,13 +32,17 @@ void playground(void)
 
 int main(int argc, char *argv[])
 {
-
     if (sizeof(double) * CHAR_BIT != 64)
     {
         throw_exception(INVALID_FLOAT_ARCH);
     }
 
     if (sizeof(size_t) * CHAR_BIT < 64)
+    {
+        throw_exception(INVALID_SIZE_T_ARCH);
+    }
+
+    if (sizeof(long long int) * CHAR_BIT < 64)
     {
         throw_exception(INVALID_SIZE_T_ARCH);
     }
