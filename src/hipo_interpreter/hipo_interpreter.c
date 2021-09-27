@@ -248,6 +248,37 @@ void pop(data_stack_t *s)
     --s->top;
 }
 
+void enqueue(offset_queue_t *queue, size_t offset)
+{
+    offset_queue_elem_t *e = s_mem_alloc(1, sizeof(offset_queue_elem_t));
+    e->next = queue->actual;
+    e->pos = offset;
+    queue->actual = e;
+
+    if (!queue->count)
+    {
+        queue->global = e;
+    }
+
+    if (queue->count <= 2)
+    {
+        e->pos = 0;
+    }
+    ++queue->count;
+}
+
+void dequeue(offset_queue_t *queue)
+{
+    offset_queue_elem_t *aux = NULL;
+    if (queue->count != 1)
+    {
+        aux = queue->actual;
+        queue->actual = queue->actual->next;
+        --queue->count;
+        remove_elem_free_list(aux, true);
+    }
+}
+
 void interpret(code_array_t *codes)
 {
     if (codes->buffer[0].instruction != INPP)
@@ -259,11 +290,18 @@ void interpret(code_array_t *codes)
     }
 
     size_t ip = 0;
+    size_t off_set = 0;
     data_stack_t stack;
     char const_buffer[65] = {'\0'};
     data_stack_elem_t aux;
+    offset_queue_t queue;
+    queue.count = 0;
+    queue.actual = NULL;
+    queue.global = NULL;
+    enqueue(&queue, 0);
     bool read_success = true;
     bool inc_ip = true;
+    int x;
     while (true)
     {
         inc_ip = true;
@@ -277,9 +315,12 @@ void interpret(code_array_t *codes)
                 throw_exception(CG_INVALID_INSTRUCTION);
             case CRCT:
                 push_from_code(&stack, &codes->buffer[ip]);
+                exit(0);
                 break;
             case CRVL:
-                push(&stack, stack.buffer[codes->buffer[ip].elem.integer]);
+                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos - 1;
+//                off_set += queue.actual != queue.global ? 1 : 0;
+                push(&stack, stack.buffer[codes->buffer[ip].elem.integer + off_set]);
                 break;
             case SOMA:
                 // TODO: ERROR
@@ -600,7 +641,8 @@ void interpret(code_array_t *codes)
                 push(&stack, aux);
                 break;
             case ARMZ:
-                stack.buffer[codes->buffer[ip].elem.integer] = stack.buffer[stack.top - 1];
+                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos - 1;
+                stack.buffer[codes->buffer[ip].elem.integer + off_set] = stack.buffer[stack.top - 1];
                 pop(&stack);
                 break;
             case DSVI:
@@ -634,6 +676,8 @@ void interpret(code_array_t *codes)
                 push(&stack, aux);
                 break;
             case IMPR:
+                if (inc_ip)
+                scanf("%d", &x);
                 if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
                 {
                     printf("%lld\n", stack.buffer[stack.top - 1].data.integer);
@@ -645,7 +689,9 @@ void interpret(code_array_t *codes)
                 pop(&stack);
                 break;
             case ALME:
-                ++stack.top;
+                aux.type = INTEGER_DATA_TYPE;
+                aux.data.integer = 0;
+                push(&stack, aux);
                 break;
             case INPP:
                 stack.buffer = s_mem_alloc(64, sizeof(data_stack_elem_t));
@@ -656,14 +702,29 @@ void interpret(code_array_t *codes)
             case PARA:
                 exit(0);
             case PARAM:
+                push(&stack, stack.buffer[codes->buffer[ip].elem.integer]);
                 break;
             case PUSHER:
+                enqueue(&queue, stack.top - 1);
+                aux.type = INTEGER_DATA_TYPE;
+                aux.data.integer = codes->buffer[ip].elem.integer;
+                push(&stack, aux);
                 break;
             case CHPR:
+                inc_ip = false;
+                ip = codes->buffer[ip].elem.integer;
                 break;
             case DESM:
+                for (long long int i = 0; i < codes->buffer[ip].elem.integer; i++)
+                {
+                    pop(&stack);
+                }
                 break;
             case RTPR:
+                inc_ip = false;
+                ip = stack.buffer[stack.top - 1].data.integer;
+                pop(&stack);
+                dequeue(&queue);
                 break;
         }
         if (inc_ip)

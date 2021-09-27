@@ -22,7 +22,7 @@ typedef struct operator_stack_s {
 
 operator_stack_t* operator_stack_init();
 
-void expression_push_var(code_list_t *cl, st_t *st);
+void expression_push_var(code_list_t *cl, st_t *st, to_fix_list_t **tf);
 
 void expression_push_int(code_list_t *cl, int_real_t n);
 

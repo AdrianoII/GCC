@@ -50,16 +50,22 @@ void operator_stack_push(operator_stack_t *os, char op)
     }
 }
 
-void expression_push_var(code_list_t *cl, st_t *st)
+void expression_push_var(code_list_t *cl, st_t *st, to_fix_list_t **tf)
 {
-    analysis_queue_fetch_vars_entries(st);
-    analysis_queue_t *aux = st->analysis_queue;
-    int_real_t e;
-    for (; aux->next; aux = aux->next)
-    {}
+    if (analysis_queue_fetch_vars_entries(st))
+    {
+        analysis_queue_t *aux = st->analysis_queue;
+        int_real_t e;
+        for (; aux->next; aux = aux->next)
+        {}
 
-    e.integer =  ((var_st_elem_t *) aux->elem)->mem_pos;
-    gen_code(cl, CRVL, e, INTEGER_DATA_TYPE);
+        e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
+        gen_code(cl, CRVL, e, INTEGER_DATA_TYPE);
+        if (aux->scope != GLOBAL_SCOPE)
+        {
+            to_fix_append(tf, cl->last);
+        }
+    }
 }
 
 void expression_push_int(code_list_t *cl, int_real_t n)

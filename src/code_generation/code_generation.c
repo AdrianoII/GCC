@@ -7,6 +7,14 @@
 #include "../s_mem_alloc/s_mem_alloc.h"
 #include "../file_handler/file_handler.h"
 
+void to_fix_append(to_fix_list_t **tf, code_t *c)
+{
+    to_fix_list_t *n = s_mem_alloc(1, sizeof(to_fix_list_t));
+    n->elem = c;
+    n->next = (*tf);
+    (*tf) = n;
+}
+
 char *instruction_to_string(instruction_t const instruction)
 {
     switch (instruction)
@@ -152,7 +160,7 @@ void gen_var_alloc_code(code_list_t *cl, st_t *st)
     }
 }
 
-void gen_read_code(code_list_t *cl, st_t *st)
+void gen_read_code(code_list_t *cl, st_t *st, to_fix_list_t **tf)
 {
     analysis_queue_fetch_vars_entries(st);
     int_real_t e;
@@ -162,11 +170,15 @@ void gen_read_code(code_list_t *cl, st_t *st)
         gen_code(cl, LEIT, e, INVALID_DATA_TYPE);
         e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, ARMZ, e, INTEGER_DATA_TYPE);
+        if (((var_st_elem_t *) aux->elem)->scope != GLOBAL_SCOPE)
+        {
+            to_fix_append(tf, cl->last);
+        }
     }
 }
 
 
-void gen_write_code(code_list_t *cl, st_t *st)
+void gen_write_code(code_list_t *cl, st_t *st, to_fix_list_t **tf)
 {
     analysis_queue_fetch_vars_entries(st);
     int_real_t e;
@@ -175,17 +187,28 @@ void gen_write_code(code_list_t *cl, st_t *st)
     {
         e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, CRVL, e, INTEGER_DATA_TYPE);
+
+        if (aux->scope != GLOBAL_SCOPE)
+        {
+            to_fix_append(tf, cl->last);
+        }
+
         e.integer = 0;
         gen_code(cl, IMPR, e, INVALID_DATA_TYPE);
     }
 }
 
-void gen_assignment_code(code_list_t *cl, st_t *st)
+void gen_assignment_code(code_list_t *cl, st_t *st, to_fix_list_t **tf)
 {
     analysis_queue_fetch_vars_entries(st);
     int_real_t e;
     e.integer = ((var_st_elem_t *) st->analysis_queue->elem)->mem_pos;
     gen_code(cl, ARMZ, e, INTEGER_DATA_TYPE);
+
+    if (((var_st_elem_t *) st->analysis_queue->elem)->scope != GLOBAL_SCOPE)
+    {
+        to_fix_append(tf, cl->last);
+    }
 }
 
 code_t *gen_template_cond_jump_code(code_list_t *cl)
@@ -280,4 +303,17 @@ void gen_args_code(code_list_t *cl, st_t *st)
         e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, PARAM, e, INTEGER_DATA_TYPE);
     }
+}
+
+void fix_semantic_scope(to_fix_list_t **to_fix, size_t num_globals)
+{
+    to_fix_list_t *aux = NULL;
+    while ((*to_fix))
+    {
+        aux = (*to_fix);
+        aux->elem->elem.integer += num_globals == 0 ? 0 : num_globals - 1;
+        (*to_fix) = (*to_fix)->next;
+        remove_elem_free_list(aux, true);
+    }
+    (*to_fix) = NULL;
 }

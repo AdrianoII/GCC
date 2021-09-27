@@ -103,6 +103,7 @@ typedef struct st_s {
     size_t prev_scope;
     size_t next_scope;
     proc_st_elem_t *actual_proc;
+    proc_st_elem_t *prev_proc;
     proc_st_elem_t *global_proc;
     error_list_t *error_list;
     size_t flags;
@@ -190,9 +191,10 @@ exception_t assert_types(st_t *st);
 //endregion semantic actions
 
 // CAUTION: Used in diagrams
-// Usado para voltar o escopo atual para o escopo global
 // Set the actual scope of the symbol table
 void st_return_global_scope(st_t *st);
+
+void st_return_previous_scope(st_t *const st);
 
 // Update the actual scope to the next possible value
 void st_update_scope(st_t *st);

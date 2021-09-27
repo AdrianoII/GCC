@@ -27,6 +27,20 @@ typedef struct data_stack_s {
     size_t actual;
     size_t top;
 } data_stack_t;
+
+typedef struct offset_queue_elem_s
+{
+    size_t pos;
+    struct offset_queue_elem_s *next;
+} offset_queue_elem_t;
+
+typedef struct offset_queue_s
+{
+    offset_queue_elem_t *global;
+    offset_queue_elem_t *actual;
+    size_t count;
+} offset_queue_t;
+
 void try_interpret(file_t *source);
 
 #endif //GCC_HIPO_INTREPRETER_H

@@ -8,7 +8,6 @@
 #include "../exceptions/exceptions_handler.h"
 #include "../lexical/lexical_analyzer.h"
 #include "../s_mem_alloc/s_mem_alloc.h"
-//#include "../semantic/semantic_actions.h"
 
 void throw_syntactic_error(char const *error_msg, char const *expected_msg, exception_t exception,
                            source_file_metadata_t *metadata);
@@ -113,6 +112,8 @@ void corpo(source_file_metadata_t *const metadata)
     bool error_happened = false;
 
     dc(metadata);
+
+    fix_semantic_scope(&metadata->tf, metadata->st->global_proc->num_vars);
 
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
     if (metadata->token->class == KEYWORD &&
@@ -623,7 +624,7 @@ void comando(source_file_metadata_t *const metadata)
             }
             else // if success
             {
-                gen_read_code(metadata->cl, metadata->st);
+                gen_read_code(metadata->cl, metadata->st, &metadata->tf);
             }
 
 
@@ -673,7 +674,7 @@ void comando(source_file_metadata_t *const metadata)
             }
             else // if success
             {
-                gen_write_code(metadata->cl, metadata->st);
+                gen_write_code(metadata->cl, metadata->st, &metadata->tf);
             }
 
             analysis_queue_destroy(&metadata->st->analysis_queue);
@@ -721,7 +722,10 @@ void comando(source_file_metadata_t *const metadata)
 
             comandos(metadata);
 
-            gen_while_code(metadata->cl, template, return_to_exp);
+            if(!metadata->num_errors)
+            {
+                gen_while_code(metadata->cl, template, return_to_exp);
+            }
 
             get_next_token(metadata->file, metadata->token,
                            metadata->args->stop_on_error);
@@ -902,8 +906,11 @@ void fator(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
-
-        expression_push_var(metadata->cl, metadata->st);
+        printf("%zu\n", metadata->st->actual_scope);
+        if (!metadata->num_errors)
+        {
+            expression_push_var(metadata->cl, metadata->st, &metadata->tf);
+        }
     }
     else if (metadata->token->class == INTEGER)
     {
@@ -915,7 +922,10 @@ void fator(source_file_metadata_t *const metadata)
             throw_exception(LEX_INVALID_INT);
         }
 
-        expression_push_int(metadata->cl, e);
+        if (!metadata->num_errors)
+        {
+            expression_push_int(metadata->cl, e);
+        }
     }
     else if (metadata->token->class == REAL)
     {
@@ -926,15 +936,20 @@ void fator(source_file_metadata_t *const metadata)
         {
             throw_exception(LEX_INVALID_INT);
         }
-
-        expression_push_real(metadata->cl, e);
+        if (!metadata->num_errors)
+        {
+            expression_push_real(metadata->cl, e);
+        }
     }
     else if (metadata->token->class == SYMBOL &&
              string_equals_literal(metadata->token->value, "("))
     {
         metadata->token->is_consumed = true;
 
-        expression_push_op(metadata->cl, metadata->op_stack, '(');
+        if (!metadata->num_errors)
+        {
+            expression_push_op(metadata->cl, metadata->op_stack, '(');
+        }
 
         expressao(metadata);
 
@@ -945,7 +960,10 @@ void fator(source_file_metadata_t *const metadata)
         {
             metadata->token->is_consumed = true;
 
-            expression_push_op(metadata->cl, metadata->op_stack, ')');
+            if (!metadata->num_errors)
+            {
+                expression_push_op(metadata->cl, metadata->op_stack, ')');
+            }
         }
         else
         {
@@ -1254,7 +1272,7 @@ void restoIdent(source_file_metadata_t *const metadata)
         else // if success
         {
             expression_finish(metadata->cl, metadata->op_stack);
-            gen_assignment_code(metadata->cl, metadata->st);
+            gen_assignment_code(metadata->cl, metadata->st, &metadata->tf);
         }
 
         analysis_queue_destroy(&metadata->st->analysis_queue);
@@ -1280,7 +1298,7 @@ void restoIdent(source_file_metadata_t *const metadata)
 
         gen_proc_call_code(metadata->cl, metadata->st, pusher);
 
-        st_return_global_scope(metadata->st);
+        st_return_previous_scope(metadata->st);
     }
 }
 
@@ -1299,8 +1317,10 @@ void lista_arg(source_file_metadata_t *const metadata)
         {
             throw_semantic_error(SEM_INVALID_ARGUMENTS, metadata);
         }
-
-        gen_args_code(metadata->cl, metadata->st);
+        else
+        {
+            gen_args_code(metadata->cl, metadata->st);
+        }
 
         analysis_queue_destroy(&metadata->st->analysis_queue);
 

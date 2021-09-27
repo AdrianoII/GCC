@@ -19,6 +19,7 @@ source_file_metadata_t * source_file_metadata_init(token_t *token, file_t *file,
     metadata->tip = NULL;
     metadata->st = st_init();
     metadata->cl = cs_init();
+    metadata->tf = NULL;
     metadata->op_stack = operator_stack_init();
 
     return metadata;

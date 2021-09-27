@@ -16,6 +16,7 @@
 typedef struct {
     st_t *st; // symbol table
     code_list_t *cl;
+    to_fix_list_t *tf;
     operator_stack_t *op_stack;
     token_t * token; // actual token
     file_t * file; // Source file to read the tokens

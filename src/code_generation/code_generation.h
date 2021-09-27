@@ -57,6 +57,13 @@ typedef struct code_list_s {
     size_t count;
 } code_list_t;
 
+typedef struct to_fix_list_s
+{
+    code_t *elem;
+    struct to_fix_list_s *next;
+}to_fix_list_t;
+
+void to_fix_append(to_fix_list_t **tf, code_t *c);
 
 char *instruction_to_string(instruction_t instruction);
 
@@ -72,13 +79,13 @@ void gen_code(code_list_t *cl, instruction_t instruction, int_real_t e, data_typ
 void gen_var_alloc_code(code_list_t *cl, st_t *st);
 
 // Add the LEIT and ARMZ instructions for the analysis queue members
-void gen_read_code(code_list_t *cl, st_t *st);
+void gen_read_code(code_list_t *cl, st_t *st, to_fix_list_t **tf);
 
 // Add the CRVL and IMPR instructions for the analysis queue members
-void gen_write_code(code_list_t *cl, st_t *st);
+void gen_write_code(code_list_t *cl, st_t *st, to_fix_list_t **tf);
 
 // Add the ARMZ for the first element in the analysis queue
-void gen_assignment_code(code_list_t *cl, st_t *st);
+void gen_assignment_code(code_list_t *cl, st_t *st, to_fix_list_t **tf);
 
 // Add an incomplete DSVF and return a reference to complete it later
 code_t* gen_template_cond_jump_code(code_list_t *cl);
@@ -109,4 +116,7 @@ void gen_proc_call_code(code_list_t *cl, st_t *st, code_t *pusher);
 
 // Add the PARAM instructions
 void gen_args_code(code_list_t *cl, st_t *st);
+
+void fix_semantic_scope(to_fix_list_t **to_fix, size_t num_globals);
+
 #endif //GCC_CODE_GENERATION_H

@@ -349,6 +349,7 @@ exception_t analysis_queue_set_scope(st_t *st)
     proc_st_elem_t *proc = (proc_st_elem_t *) proc_entry->elem;
     st->actual_proc = proc;
     st->prev_scope = st->actual_scope;
+    st->prev_proc = st->actual_proc;
     st->actual_scope = proc_entry->scope;
 
     analysis_queue_destroy(&st->analysis_queue);
@@ -461,6 +462,12 @@ void st_return_global_scope(st_t *const st)
 {
     st->actual_proc = st->global_proc;
     st->actual_scope = GLOBAL_SCOPE;
+}
+
+void st_return_previous_scope(st_t *const st)
+{
+    st->actual_proc = st->prev_proc;
+    st->actual_scope = st->prev_scope;
 }
 
 void st_update_scope(st_t *const st)
