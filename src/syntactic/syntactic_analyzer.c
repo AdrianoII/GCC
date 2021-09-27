@@ -906,7 +906,6 @@ void fator(source_file_metadata_t *const metadata)
         metadata->token->is_consumed = true;
 
         analysis_queue_append(&metadata->st->analysis_queue, metadata->token->value, metadata->st->actual_scope);
-        printf("%zu\n", metadata->st->actual_scope);
         if (!metadata->num_errors)
         {
             expression_push_var(metadata->cl, metadata->st, &metadata->tf);

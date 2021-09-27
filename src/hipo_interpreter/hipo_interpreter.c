@@ -315,7 +315,6 @@ void interpret(code_array_t *codes)
                 throw_exception(CG_INVALID_INSTRUCTION);
             case CRCT:
                 push_from_code(&stack, &codes->buffer[ip]);
-                exit(0);
                 break;
             case CRVL:
                 off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos - 1;
