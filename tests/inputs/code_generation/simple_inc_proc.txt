@@ -1,0 +1,15 @@
+program simpleProcs
+var i1: integer;
+procedure inc
+begin
+    i1 := i1 +1;
+    write(i1)
+end
+begin
+    i1 := 0;
+    write(i1);
+	inc;
+	inc;
+	inc;
+	write(i1)
+end.

@@ -1,0 +1,22 @@
+program cube
+var i1, i2, i3, base, r : integer
+begin
+    r := 0;
+    i1 := 0;
+    i2 := 0;
+    i3 := 0;
+    base := 2;
+    while i3 < base do
+        i3 := i3 + 1;
+        i2 := 0;
+        while i2 < base do
+            i2 := i2 + 1;
+            i1 := 0;
+            while i1 < base do
+                i1 := i1 + 1;
+                r := r + 1
+            $
+        $
+    $;
+   write(r)
+end.

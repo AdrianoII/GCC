@@ -1,0 +1,9 @@
+program ifAndElse
+var i1, i2 : integer
+begin
+    i1 := 1;
+    if 2 > 3 then write(i1) $;
+    write(i2);
+    if 3 <> 2 then write(i2) else write(i1) $;
+    write(i2)
+end.

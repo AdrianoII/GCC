@@ -1,0 +1,41 @@
+program fibT
+var x , y,z ,w ,q: integer;
+
+procedure fibn(n4 : integer)
+var n1, n2, n3 : integer
+begin
+    n1 := 0;
+    n2 := 1;
+    n3 := 0;
+    if n4 <= 0 then
+        write(n3)
+    else
+        if n4 = 1 then
+            write(n3)
+        else
+            while n4 > 1 do
+                n4 := n4 - 1;
+                n1 := n2;
+                n2 := n3;
+                n3 := n1 + n2
+            $;
+            write(n3)
+        $
+    $
+end;
+
+procedure fibs(n : integer)
+var aux : integer
+begin
+    aux := 1;
+    while aux <= n  do
+        write(aux);
+        fibn(aux);
+        aux := aux + 1
+    $
+end
+
+begin
+    read(x);
+    fibs(x)
+end.
