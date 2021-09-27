@@ -246,6 +246,7 @@ void push_from_code(data_stack_t *s, code_t *code)
 void pop(data_stack_t *s)
 {
     --s->top;
+    s->buffer[s->top].type = INVALID_DATA_TYPE;
 }
 
 void enqueue(offset_queue_t *queue, size_t offset)
@@ -260,7 +261,7 @@ void enqueue(offset_queue_t *queue, size_t offset)
         queue->global = e;
     }
 
-    if (queue->count <= 2)
+    if (queue->count < 2)
     {
         e->pos = 0;
     }
@@ -291,6 +292,7 @@ void interpret(code_array_t *codes)
 
     size_t ip = 0;
     size_t off_set = 0;
+    size_t num_locals = 0;
     data_stack_t stack;
     char const_buffer[65] = {'\0'};
     data_stack_elem_t aux;
@@ -301,11 +303,15 @@ void interpret(code_array_t *codes)
     enqueue(&queue, 0);
     bool read_success = true;
     bool inc_ip = true;
+    bool count_vars = false;
     int x;
     while (true)
     {
         inc_ip = true;
-
+        if (codes->buffer[ip].instruction != ALME && codes->buffer[ip].instruction != DSVI)
+        {
+            count_vars = false;
+        }
         switch (codes->buffer[ip].instruction)
         {
             case INVALID_INST:
@@ -317,7 +323,7 @@ void interpret(code_array_t *codes)
                 push_from_code(&stack, &codes->buffer[ip]);
                 break;
             case CRVL:
-                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos - 1;
+                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos;
 //                off_set += queue.actual != queue.global ? 1 : 0;
                 push(&stack, stack.buffer[codes->buffer[ip].elem.integer + off_set]);
                 break;
@@ -640,7 +646,7 @@ void interpret(code_array_t *codes)
                 push(&stack, aux);
                 break;
             case ARMZ:
-                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos - 1;
+                off_set = queue.actual->pos == 0 ? 0 : queue.actual->pos;
                 stack.buffer[codes->buffer[ip].elem.integer + off_set] = stack.buffer[stack.top - 1];
                 pop(&stack);
                 break;
@@ -675,7 +681,7 @@ void interpret(code_array_t *codes)
                 push(&stack, aux);
                 break;
             case IMPR:
-                if (inc_ip)
+                if (!inc_ip)
                 scanf("%d", &x);
                 if (stack.buffer[stack.top - 1].type == INTEGER_DATA_TYPE)
                 {
@@ -691,20 +697,28 @@ void interpret(code_array_t *codes)
                 aux.type = INTEGER_DATA_TYPE;
                 aux.data.integer = 0;
                 push(&stack, aux);
+
+                if (count_vars)
+                {
+                    ++num_locals;
+                }
+
                 break;
             case INPP:
                 stack.buffer = s_mem_alloc(64, sizeof(data_stack_elem_t));
                 stack.actual = 0;
                 stack.top = 0;
                 stack.count = 64;
+                count_vars = true;
                 break;
             case PARA:
                 exit(0);
             case PARAM:
-                push(&stack, stack.buffer[codes->buffer[ip].elem.integer]);
+                off_set = queue.count == 1 ? 0 :  queue.actual->next->pos;
+                push(&stack, stack.buffer[codes->buffer[ip].elem.integer + off_set]);
                 break;
             case PUSHER:
-                enqueue(&queue, stack.top - 1);
+                enqueue(&queue, stack.top  - num_locals);
                 aux.type = INTEGER_DATA_TYPE;
                 aux.data.integer = codes->buffer[ip].elem.integer;
                 push(&stack, aux);

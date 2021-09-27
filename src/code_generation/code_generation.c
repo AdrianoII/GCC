@@ -289,7 +289,7 @@ void gen_proc_call_code(code_list_t *cl, st_t *st, code_t *pusher)
     pusher->elem.integer = cl->count;
 }
 
-void gen_args_code(code_list_t *cl, st_t *st)
+void gen_args_code(code_list_t *cl, st_t *st, to_fix_list_t **tf)
 {
 //    proc_st_elem_t *actual = st->actual_proc;
 //    st->actual_proc = st->global_proc;
@@ -302,6 +302,11 @@ void gen_args_code(code_list_t *cl, st_t *st)
     {
         e.integer = ((var_st_elem_t *) aux->elem)->mem_pos;
         gen_code(cl, PARAM, e, INTEGER_DATA_TYPE);
+
+        if (st->actual_scope != GLOBAL_SCOPE)
+        {
+            to_fix_append(tf, cl->last);
+        }
     }
 }
 
@@ -311,7 +316,7 @@ void fix_semantic_scope(to_fix_list_t **to_fix, size_t num_globals)
     while ((*to_fix))
     {
         aux = (*to_fix);
-        aux->elem->elem.integer += num_globals == 0 ? 0 : num_globals - 1;
+        aux->elem->elem.integer += num_globals == 0 ? 0 : num_globals;
         (*to_fix) = (*to_fix)->next;
         remove_elem_free_list(aux, true);
     }

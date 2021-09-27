@@ -60,7 +60,7 @@ var_st_elem_t *var_st_elem_init(string_t *const id, size_t const scope, size_t c
 
     var->id = id;
     var->scope = scope;
-    var->mem_pos =mem_pos;
+    var->mem_pos = mem_pos;
 
     return var;
 }
@@ -260,7 +260,7 @@ bool analysis_queue_fetch_vars_entries(st_t const *const st)
 
     for (analysis_queue_t *aux = st->analysis_queue; aux; aux = aux->next)
     {
-        if(aux->elem == NULL)
+        if (aux->elem == NULL)
         {
             aux->elem = st_try_get_var(st, aux->id, aux->scope, NULL);
             if (aux->elem == NULL)
@@ -331,12 +331,12 @@ bool analysis_queue_assert_types(st_t *const st)
 
 exception_t analysis_queue_set_scope(st_t *st)
 {
-    if (st->actual_scope  != GLOBAL_SCOPE)
-    {
-        st_append_error(st, "Procedure nesting is not allowed!\n");
-        analysis_queue_destroy(&st->analysis_queue);
-        return SEM_PROCEDURE_NESTING;
-    }
+//    if (st->actual_scope != GLOBAL_SCOPE)
+//    {
+//        st_append_error(st, "Procedure nesting is not allowed!\n");
+//        analysis_queue_destroy(&st->analysis_queue);
+//        return SEM_PROCEDURE_NESTING;
+//    }
 
     st_entry_t *proc_entry = st_try_get(st, st->analysis_queue->id, 0, LOOKUP_PROC, NULL);
     if (proc_entry == NULL)
@@ -347,9 +347,9 @@ exception_t analysis_queue_set_scope(st_t *st)
     }
 
     proc_st_elem_t *proc = (proc_st_elem_t *) proc_entry->elem;
+    st->prev_proc = st->actual_proc;
     st->actual_proc = proc;
     st->prev_scope = st->actual_scope;
-    st->prev_proc = st->actual_proc;
     st->actual_scope = proc_entry->scope;
 
     analysis_queue_destroy(&st->analysis_queue);
@@ -551,8 +551,9 @@ bool st_add_var(st_t *st, analysis_queue_t *target)
     }
 
     string_t *id_copy = string_copy(target->id);
-
-    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope, st->actual_scope == GLOBAL_SCOPE ? st->actual_proc->num_vars++ : ((st->actual_proc->num_vars++) + 1));
+    var_st_elem_t *var = var_st_elem_init(id_copy, target->scope,
+                                          st->actual_scope == GLOBAL_SCOPE ? st->actual_proc->num_vars++ : (
+                                                  (st->actual_proc->num_vars++)  + 1));
 
     target->elem = var;
 
@@ -600,7 +601,7 @@ bool st_proc_add_params(st_t *st)
         parameter_list_t *new = s_mem_alloc(1, sizeof(parameter_list_t));
         var_st_elem_t *var = ((var_st_elem_t *) aux->elem);
         new->param = var;
-        //++st->actual_proc->num_vars;
+        ++st->actual_proc->num_params;
 
         if (st->actual_proc->parameters == NULL)
         {
@@ -682,14 +683,15 @@ void st_proc_log(st_t *st)
 {
     // TODO: LOG PARAMETERS
     printf("PROC ST\n");
-    printf("%*s|%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "identifier", VAR_ST_CELL_SIZE, "scope", VAR_ST_CELL_SIZE, "num_vars", VAR_ST_CELL_SIZE, "parameters");
+    printf("%*s|%*s|%*s|%*s\n", VAR_ST_CELL_SIZE, "identifier", VAR_ST_CELL_SIZE, "scope", VAR_ST_CELL_SIZE, "num_vars",
+           VAR_ST_CELL_SIZE, "parameters");
     for (size_t i = 0; i < st->capacity; i++)
     {
         if (st->entries[i].valid && st->entries[i].type == PROC_TYPE_ST_ENTRY)
         {
             proc_st_elem_t *aux = st->entries[i].elem;
             printf("%*.*s|%*zu|%*zu|", VAR_ST_CELL_SIZE, VAR_ST_CELL_SIZE, st->entries[i].id->buffer, VAR_ST_CELL_SIZE,
-                   st->entries[i].scope,VAR_ST_CELL_SIZE, aux->num_vars);
+                   st->entries[i].scope, VAR_ST_CELL_SIZE, aux->num_vars);
             if (aux && aux->parameters)
             {
                 parameter_list_t *aux2 = aux->parameters;

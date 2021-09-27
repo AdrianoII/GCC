@@ -115,7 +115,7 @@ code_t* gen_template_pusher_code(code_list_t *cl);
 void gen_proc_call_code(code_list_t *cl, st_t *st, code_t *pusher);
 
 // Add the PARAM instructions
-void gen_args_code(code_list_t *cl, st_t *st);
+void gen_args_code(code_list_t *cl, st_t *st, to_fix_list_t **tf);
 
 void fix_semantic_scope(to_fix_list_t **to_fix, size_t num_globals);
 

@@ -57,7 +57,10 @@ void programa(source_file_metadata_t *const metadata)
 {
     int_real_t e;
     e.integer = 0;
-    gen_code(metadata->cl, INPP, e, INVALID_DATA_TYPE);
+    if (!metadata->num_errors)
+    {
+        gen_code(metadata->cl, INPP, e, INVALID_DATA_TYPE);
+    }
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
     if (metadata->token->class == KEYWORD &&
         string_equals_literal(metadata->token->value, "program"))
@@ -113,7 +116,10 @@ void corpo(source_file_metadata_t *const metadata)
 
     dc(metadata);
 
-    fix_semantic_scope(&metadata->tf, metadata->st->global_proc->num_vars);
+    if (!metadata->num_errors)
+    {
+        fix_semantic_scope(&metadata->tf, metadata->st->global_proc->num_vars);
+    }
 
     get_next_token(metadata->file, metadata->token, metadata->args->stop_on_error);
     if (metadata->token->class == KEYWORD &&
@@ -219,7 +225,10 @@ void dc_v(source_file_metadata_t *const metadata)
             metadata->token->is_consumed = true;
             tipo_var(metadata);
 
-            gen_var_alloc_code(metadata->cl, metadata->st);
+            if (!metadata->num_errors)
+            {
+                gen_var_alloc_code(metadata->cl, metadata->st);
+            }
 
             analysis_queue_destroy(&metadata->st->analysis_queue);
 
@@ -374,14 +383,20 @@ void dc_p(source_file_metadata_t *const metadata)
             }
 
             code_t *skip_proc = gen_template_uncond_jump_code(metadata->cl);
+            if (!metadata->num_errors)
+            {
+                st_set_proc_first_instruction(metadata->st, metadata->cl->count);
+            }
 
-            st_set_proc_first_instruction(metadata->st, metadata->cl->count);
 
             parametros(metadata);
 
             corpo_p(metadata);
 
-            gen_proc_code(metadata->cl, metadata->st, skip_proc);
+            if (!metadata->num_errors)
+            {
+                gen_proc_code(metadata->cl, metadata->st, skip_proc);
+            }
             return;
         }
         else
@@ -624,7 +639,10 @@ void comando(source_file_metadata_t *const metadata)
             }
             else // if success
             {
-                gen_read_code(metadata->cl, metadata->st, &metadata->tf);
+                if (!metadata->num_errors)
+                {
+                    gen_read_code(metadata->cl, metadata->st, &metadata->tf);
+                }
             }
 
 
@@ -674,7 +692,10 @@ void comando(source_file_metadata_t *const metadata)
             }
             else // if success
             {
-                gen_write_code(metadata->cl, metadata->st, &metadata->tf);
+                if (!metadata->num_errors)
+                {
+                    gen_write_code(metadata->cl, metadata->st, &metadata->tf);
+                }
             }
 
             analysis_queue_destroy(&metadata->st->analysis_queue);
@@ -1233,16 +1254,25 @@ void pfalsa(source_file_metadata_t *const metadata, code_t *template)
         metadata->token->is_consumed = true;
 
         code_t *else_jump = gen_template_uncond_jump_code(metadata->cl);
-        gen_if_code(metadata->cl, template);
+        if (!metadata->num_errors)
+        {
+            gen_if_code(metadata->cl, template);
+        }
 
         comandos(metadata);
 
-        gen_else_code(metadata->cl, else_jump);
+        if (!metadata->num_errors)
+        {
+            gen_else_code(metadata->cl, else_jump);
+        }
     }
     else
     {
         // Ɛ
-        gen_if_code(metadata->cl, template);
+        if (!metadata->num_errors)
+        {
+            gen_if_code(metadata->cl, template);
+        }
 
     }
 
@@ -1316,9 +1346,9 @@ void lista_arg(source_file_metadata_t *const metadata)
         {
             throw_semantic_error(SEM_INVALID_ARGUMENTS, metadata);
         }
-        else
+        else if (!metadata->num_errors)
         {
-            gen_args_code(metadata->cl, metadata->st);
+            gen_args_code(metadata->cl, metadata->st, &metadata->tf);
         }
 
         analysis_queue_destroy(&metadata->st->analysis_queue);

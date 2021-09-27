@@ -68,6 +68,7 @@ typedef struct proc_st_elem_s {
     size_t scope;
     size_t num_vars;
     size_t first_instruction;
+    size_t num_params;
     parameter_list_t *parameters;
     struct st_entry_s *hash_entry;
 } proc_st_elem_t;
