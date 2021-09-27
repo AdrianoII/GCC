@@ -1,0 +1,34 @@
+program fibT
+var x , y,z ,w ,q: integer;
+
+procedure fibr(n1,n2,n3,n : integer)
+begin
+    if n = 1 then
+        write(n2)
+    else
+        n1 := n2;
+        n2 := n3;
+        n3 := n1 + n2;
+        n := n - 1;
+        fibr(n1;n2;n3;n)
+    $
+end;
+
+procedure fibs(n : integer)
+var n1,n2,n3 : integer;
+var aux : integer
+begin
+    n1 := 0;
+    n2 := 0;
+    n3 := 1;
+    aux := 1;
+    while aux <= n  do
+        fibr(n1;n2;n3;aux);
+        aux := aux + 1
+    $
+end
+
+begin
+    read(x);
+    fibs(x)
+end.
